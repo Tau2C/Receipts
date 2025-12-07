@@ -5,6 +5,62 @@
 
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+part 'simple.freezed.dart';
 
 String greet({required String name}) =>
     RustLib.instance.api.crateApiSimpleGreet(name: name);
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Decimal>>
+abstract class Decimal implements RustOpaqueInterface {}
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Item>>
+abstract class Item implements RustOpaqueInterface {
+  Decimal get count;
+
+  String get name;
+
+  Decimal get price;
+
+  Decimal get unitPrice;
+
+  set count(Decimal count);
+
+  set name(String name);
+
+  set price(Decimal price);
+
+  set unitPrice(Decimal unitPrice);
+}
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Receipt>>
+abstract class Receipt implements RustOpaqueInterface {
+  DateTime get date;
+
+  List<Item> get items;
+
+  String? get nip;
+
+  Store get store;
+
+  Decimal get total;
+
+  set date(DateTime date);
+
+  set items(List<Item> items);
+
+  set nip(String? nip);
+
+  set store(Store store);
+
+  set total(Decimal total);
+}
+
+@freezed
+sealed class Store with _$Store {
+  const Store._();
+
+  const factory Store.biedronka() = Store_Biedronka;
+  const factory Store.lidl() = Store_Lidl;
+  const factory Store.other(String field0) = Store_Other;
+}

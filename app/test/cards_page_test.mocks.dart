@@ -104,4 +104,12 @@ class MockDatabaseHelper extends _i1.Mock implements _i4.DatabaseHelper {
             returnValue: _i5.Future<dynamic>.value(),
           )
           as _i5.Future<dynamic>);
+
+  @override
+  _i5.Future<dynamic> deleteDatabase() =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteDatabase, []),
+            returnValue: _i5.Future<dynamic>.value(),
+          )
+          as _i5.Future<dynamic>);
 }

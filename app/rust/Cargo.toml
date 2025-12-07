@@ -8,6 +8,8 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 flutter_rust_bridge = "=2.11.1"
+chrono = { version = "0.4.31", features = ["serde", "wasmbind"] }
+rust_decimal = { version = "1.30.0", features = ["serde", "db-postgres"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
