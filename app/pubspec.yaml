@@ -39,6 +39,9 @@ dependencies:
   flutter_rust_bridge: 2.11.1
   animate_icons: ^2.0.0
   barcode_widget: ^2.0.4
+  sqflite: ^2.4.2
+  path_provider: ^2.1.5
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +56,9 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   image: ^4.5.4
+  sqflite_common_ffi: ^2.3.6
+  mockito: ^5.6.1
+  build_runner: ^2.10.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

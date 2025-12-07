@@ -13,16 +13,22 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    CardsPage(),
-    ReceiptsPage(),
-    SettingsPage(),
-  ];
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  void _refresh() {
+    setState(() {});
+  }
+
+  List<Widget> _widgetOptions() {
+    return <Widget>[
+      const CardsPage(),
+      const ReceiptsPage(),
+      SettingsPage(onDatabaseReset: _refresh),
+    ];
   }
 
   @override
@@ -31,7 +37,14 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         title: const Text('Receipts'),
         actions: [
-          IconButton(icon: const Icon(Icons.sync), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.sync),
+            onPressed: () {
+              if (_selectedIndex == 0) {
+                _refresh();
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
@@ -40,7 +53,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
-      body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
+      body: Center(child: _widgetOptions().elementAt(_selectedIndex)),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
