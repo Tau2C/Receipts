@@ -40,7 +40,7 @@ This document provides essential context for AI models interacting with this pro
   + `variables`, `functions`: `camelCase`
   + `classes`, `enums`: `PascalCase`
   + `files`: `snake_case.dart`
-+ **API Design:** The internal API between Dart and Rust is defined in the `/app//rust/src/api/` directory. Changes here require running the `flutter_rust_bridge` code generator. The external API interactions with retailer backends are handled within the Rust crate.
++ **API Design:** The internal API between Dart and Rust is defined in the `/app/rust/src/api/` directory. Changes here require running the `flutter_rust_bridge` code generator (`flutter_rust_bridge_codegen generate`). The external API interactions with retailer backends are handled within the Rust crate.
 + **Error Handling:** In Dart, use `try...catch` blocks for calls to the Rust library. The Rust code should propagate errors up to the Dart layer.
 
 ## 5. Key Files & Entrypoints

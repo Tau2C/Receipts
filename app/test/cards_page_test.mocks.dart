@@ -3,11 +3,12 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i5;
+import 'dart:async' as _i6;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:shopledger/src/card_item.dart' as _i3;
-import 'package:shopledger/src/database_helper.dart' as _i4;
+import 'package:shopledger/src/database_helper.dart' as _i5;
+import 'package:shopledger/src/rust/api/simple.dart' as _i4;
 import 'package:sqflite/sqflite.dart' as _i2;
 
 // ignore_for_file: type=lint
@@ -35,81 +36,116 @@ class _FakeCardItem_1 extends _i1.SmartFake implements _i3.CardItem {
     : super(parent, parentInvocation);
 }
 
+class _FakeReceipt_2 extends _i1.SmartFake implements _i4.Receipt {
+  _FakeReceipt_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [DatabaseHelper].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDatabaseHelper extends _i1.Mock implements _i4.DatabaseHelper {
+class MockDatabaseHelper extends _i1.Mock implements _i5.DatabaseHelper {
   MockDatabaseHelper() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Future<_i2.Database> get database =>
+  _i6.Future<_i2.Database> get database =>
       (super.noSuchMethod(
             Invocation.getter(#database),
-            returnValue: _i5.Future<_i2.Database>.value(
+            returnValue: _i6.Future<_i2.Database>.value(
               _FakeDatabase_0(this, Invocation.getter(#database)),
             ),
           )
-          as _i5.Future<_i2.Database>);
+          as _i6.Future<_i2.Database>);
 
   @override
-  _i5.Future<_i3.CardItem> create(_i3.CardItem? card) =>
+  _i6.Future<_i3.CardItem> create(_i3.CardItem? card) =>
       (super.noSuchMethod(
             Invocation.method(#create, [card]),
-            returnValue: _i5.Future<_i3.CardItem>.value(
+            returnValue: _i6.Future<_i3.CardItem>.value(
               _FakeCardItem_1(this, Invocation.method(#create, [card])),
             ),
           )
-          as _i5.Future<_i3.CardItem>);
+          as _i6.Future<_i3.CardItem>);
 
   @override
-  _i5.Future<_i3.CardItem> readCard(int? id) =>
+  _i6.Future<_i3.CardItem> readCard(int? id) =>
       (super.noSuchMethod(
             Invocation.method(#readCard, [id]),
-            returnValue: _i5.Future<_i3.CardItem>.value(
+            returnValue: _i6.Future<_i3.CardItem>.value(
               _FakeCardItem_1(this, Invocation.method(#readCard, [id])),
             ),
           )
-          as _i5.Future<_i3.CardItem>);
+          as _i6.Future<_i3.CardItem>);
 
   @override
-  _i5.Future<List<_i3.CardItem>> readAllCards() =>
+  _i6.Future<List<_i3.CardItem>> readAllCards() =>
       (super.noSuchMethod(
             Invocation.method(#readAllCards, []),
-            returnValue: _i5.Future<List<_i3.CardItem>>.value(<_i3.CardItem>[]),
+            returnValue: _i6.Future<List<_i3.CardItem>>.value(<_i3.CardItem>[]),
           )
-          as _i5.Future<List<_i3.CardItem>>);
+          as _i6.Future<List<_i3.CardItem>>);
 
   @override
-  _i5.Future<int> update(_i3.CardItem? card) =>
+  _i6.Future<int> update(_i3.CardItem? card) =>
       (super.noSuchMethod(
             Invocation.method(#update, [card]),
-            returnValue: _i5.Future<int>.value(0),
+            returnValue: _i6.Future<int>.value(0),
           )
-          as _i5.Future<int>);
+          as _i6.Future<int>);
 
   @override
-  _i5.Future<int> delete(int? id) =>
+  _i6.Future<int> delete(int? id) =>
       (super.noSuchMethod(
             Invocation.method(#delete, [id]),
-            returnValue: _i5.Future<int>.value(0),
+            returnValue: _i6.Future<int>.value(0),
           )
-          as _i5.Future<int>);
+          as _i6.Future<int>);
 
   @override
-  _i5.Future<dynamic> close() =>
+  _i6.Future<_i4.Receipt> createReceipt(_i4.Receipt? receipt) =>
+      (super.noSuchMethod(
+            Invocation.method(#createReceipt, [receipt]),
+            returnValue: _i6.Future<_i4.Receipt>.value(
+              _FakeReceipt_2(
+                this,
+                Invocation.method(#createReceipt, [receipt]),
+              ),
+            ),
+          )
+          as _i6.Future<_i4.Receipt>);
+
+  @override
+  _i6.Future<List<_i4.Receipt>> readAllReceipts() =>
+      (super.noSuchMethod(
+            Invocation.method(#readAllReceipts, []),
+            returnValue: _i6.Future<List<_i4.Receipt>>.value(<_i4.Receipt>[]),
+          )
+          as _i6.Future<List<_i4.Receipt>>);
+
+  @override
+  _i6.Future<dynamic> close() =>
       (super.noSuchMethod(
             Invocation.method(#close, []),
-            returnValue: _i5.Future<dynamic>.value(),
+            returnValue: _i6.Future<dynamic>.value(),
           )
-          as _i5.Future<dynamic>);
+          as _i6.Future<dynamic>);
 
   @override
-  _i5.Future<dynamic> deleteDatabase() =>
+  _i6.Future<dynamic> deleteDatabase() =>
       (super.noSuchMethod(
             Invocation.method(#deleteDatabase, []),
-            returnValue: _i5.Future<dynamic>.value(),
+            returnValue: _i6.Future<dynamic>.value(),
           )
-          as _i5.Future<dynamic>);
+          as _i6.Future<dynamic>);
+
+  @override
+  _i6.Future<void> resetTable(String? table) =>
+      (super.noSuchMethod(
+            Invocation.method(#resetTable, [table]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 }

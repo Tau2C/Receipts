@@ -8,52 +8,75 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'simple.freezed.dart';
 
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`
+
 String greet({required String name}) =>
     RustLib.instance.api.crateApiSimpleGreet(name: name);
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Decimal>>
-abstract class Decimal implements RustOpaqueInterface {}
+List<Receipt> fetchReceipts() =>
+    RustLib.instance.api.crateApiSimpleFetchReceipts();
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Item>>
-abstract class Item implements RustOpaqueInterface {
-  Decimal get count;
+class Item {
+  final String name;
+  final double unitPrice;
+  final double count;
+  final double price;
 
-  String get name;
+  const Item({
+    required this.name,
+    required this.unitPrice,
+    required this.count,
+    required this.price,
+  });
 
-  Decimal get price;
+  @override
+  int get hashCode =>
+      name.hashCode ^ unitPrice.hashCode ^ count.hashCode ^ price.hashCode;
 
-  Decimal get unitPrice;
-
-  set count(Decimal count);
-
-  set name(String name);
-
-  set price(Decimal price);
-
-  set unitPrice(Decimal unitPrice);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Item &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          unitPrice == other.unitPrice &&
+          count == other.count &&
+          price == other.price;
 }
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Receipt>>
-abstract class Receipt implements RustOpaqueInterface {
-  DateTime get date;
+class Receipt {
+  final String? nip;
+  final Store store;
+  final List<Item> items;
+  final double total;
+  final DateTime date;
 
-  List<Item> get items;
+  const Receipt({
+    this.nip,
+    required this.store,
+    required this.items,
+    required this.total,
+    required this.date,
+  });
 
-  String? get nip;
+  @override
+  int get hashCode =>
+      nip.hashCode ^
+      store.hashCode ^
+      items.hashCode ^
+      total.hashCode ^
+      date.hashCode;
 
-  Store get store;
-
-  Decimal get total;
-
-  set date(DateTime date);
-
-  set items(List<Item> items);
-
-  set nip(String? nip);
-
-  set store(Store store);
-
-  set total(Decimal total);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Receipt &&
+          runtimeType == other.runtimeType &&
+          nip == other.nip &&
+          store == other.store &&
+          items == other.items &&
+          total == other.total &&
+          date == other.date;
 }
 
 @freezed

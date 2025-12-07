@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:barcode_widget/barcode_widget.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:shopledger/src/card_item.dart';
+
+const Map<String, String> logos = {
+  'Biedronka': 'assets/images/biedronka.png',
+  'Lidl': 'assets/images/lidl.svg',
+  'Auchan': 'assets/images/auchan.png',
+};
 
 class CardWidget extends StatefulWidget {
   final CardItem card;
@@ -80,10 +87,23 @@ class _CardWidgetState extends State<CardWidget> {
   }
 
   Widget _buildCollapsed() {
+    Widget image = Text(widget.card.storeName[0]);
+    if (logos.containsKey(widget.card.storeName)) {
+      if (logos[widget.card.storeName]!.split(".").last == "svg") {
+        image = SvgPicture.asset(logos[widget.card.storeName]!);
+      } else {
+        image = Image.asset(
+          logos[widget.card.storeName]!,
+          width: 115,
+          height: 115,
+        );
+      }
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Image.asset(widget.card.logoAsset, width: 80, height: 80),
+        image,
         if (widget.card.comment != null) const SizedBox(height: 10),
         if (widget.card.comment != null)
           Text(widget.card.comment!, style: const TextStyle(fontSize: 16)),
@@ -92,13 +112,33 @@ class _CardWidgetState extends State<CardWidget> {
   }
 
   Widget _buildExpanded() {
+    Widget image = Text(widget.card.storeName[0]);
+    if (logos.containsKey(widget.card.storeName)) {
+      if (logos[widget.card.storeName]!.split(".").last == "svg") {
+        image = SvgPicture.asset(logos[widget.card.storeName]!, width: 50, height: 50);
+      } else {
+        image = Image.asset(
+          logos[widget.card.storeName]!,
+          width: 50,
+          height: 50,
+        );
+      }
+    }
+
+    double widthFactor;
+    if (widget.card.barcodeType == BarcodeType.QrCode) {
+      widthFactor = 1.2;
+    } else {
+      widthFactor = 0.7;
+    }
+
     return Stack(
       children: [
         Align(
           alignment: Alignment.topLeft,
           child: Padding(
             padding: const EdgeInsets.all(10),
-            child: Image.asset(widget.card.logoAsset, width: 40, height: 40),
+            child: image
           ),
         ),
         Align(
@@ -112,24 +152,14 @@ class _CardWidgetState extends State<CardWidget> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (widget.card.barcodeType == BarcodeType.QrCode)
-                FractionallySizedBox(
-                  widthFactor: 1.2,
-                  child: BarcodeWidget(
-                    barcode: Barcode.fromType(widget.card.barcodeType),
-                    data: widget.card.barcodeData,
-                    drawText: false,
-                  ),
+              FractionallySizedBox(
+                widthFactor: widthFactor,
+                child: BarcodeWidget(
+                  barcode: Barcode.fromType(widget.card.barcodeType),
+                  data: widget.card.barcodeData,
+                  drawText: false,
                 ),
-              if (widget.card.barcodeType == BarcodeType.Code128)
-                FractionallySizedBox(
-                  widthFactor: 0.7,
-                  child: BarcodeWidget(
-                    barcode: Barcode.fromType(widget.card.barcodeType),
-                    data: widget.card.barcodeData,
-                    drawText: false,
-                  ),
-                ),
+              ),
               const SizedBox(height: 10),
               Text(widget.card.barcodeData),
             ],

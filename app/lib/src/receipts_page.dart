@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:animate_icons/animate_icons.dart';
+import 'package:shopledger/src/rust/api/simple.dart';
+import 'package:shopledger/src/database_helper.dart';
 
 class ReceiptsPage extends StatefulWidget {
   const ReceiptsPage({super.key});
@@ -9,64 +10,89 @@ class ReceiptsPage extends StatefulWidget {
 }
 
 class _ReceiptsPageState extends State<ReceiptsPage> {
-  late AnimateIconController _animationController;
-
-  bool _isExpanded = false;
+  late Future<List<Receipt>> _receipts;
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimateIconController();
+    _receipts = _dbHelper.readAllReceipts();
+  }
+
+  Future<void> _fetchAndStoreReceipts() async {
+    try {
+      final rustReceipts = await fetchReceipts();
+      for (var rustReceipt in rustReceipts) {
+        await _dbHelper.createReceipt(rustReceipt);
+      }
+      setState(() {
+        _receipts = _dbHelper.readAllReceipts();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to fetch receipts: $e')),
+      );
+    }
+  }
+
+  String _storeToString(Store store) {
+    return store.when(
+      biedronka: () => 'Biedronka',
+      lidl: () => 'Lidl',
+      other: (name) => name,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: const Center(child: Text('Receipts Page')),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (_isExpanded)
-            FloatingActionButton(
-              onPressed: () {},
-              mini: true,
-              child: const Icon(Icons.add_a_photo),
-            ),
-          const SizedBox(height: 8),
-          if (_isExpanded)
-            FloatingActionButton(
-              onPressed: () {},
-              mini: true,
-              child: const Icon(Icons.add),
-            ),
-          const SizedBox(height: 8),
-          FloatingActionButton(
-            onPressed: () {
-              setState(() {
-                _isExpanded = !_isExpanded;
-              });
-            },
-            child: AnimateIcons(
-              controller: _animationController,
-              startIcon: Icons.add,
-              endIcon: Icons.close,
-              onStartIconPress: () {
-                setState(() {
-                  _isExpanded = true;
-                });
-                return true;
+      body: FutureBuilder<List<Receipt>>(
+        future: _receipts,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No receipts found.'));
+          } else {
+            final receipts = snapshot.data!;
+            return ListView.builder(
+              itemCount: receipts.length,
+              itemBuilder: (context, index) {
+                final receipt = receipts[index];
+                return Card(
+                  margin: const EdgeInsets.all(8.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Store: ${_storeToString(receipt.store)}',
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        Text('Total: ${receipt.total.toStringAsFixed(2)}'),
+                        Text(
+                            'Date: ${receipt.date.toLocal().toString().split(' ')[0]}'),
+                        ...receipt.items.map(
+                          (item) => Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Text(
+                                '${item.name} x${item.count} @ ${item.unitPrice.toStringAsFixed(2)} = ${item.price.toStringAsFixed(2)}'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               },
-              onEndIconPress: () {
-                setState(() {
-                  _isExpanded = false;
-                });
-                return true;
-              },
-              duration: Duration(milliseconds: 200),
-              clockwise: false,
-            ),
-          ),
-        ],
+            );
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _fetchAndStoreReceipts,
+        child: const Icon(Icons.download),
       ),
     );
   }

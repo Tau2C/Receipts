@@ -14,7 +14,6 @@ pkgs.mkShell rec {
     jdk17
     cmake
     ninja
-    flutter_rust_bridge_codegen
 
     pkg-config
 
@@ -42,6 +41,7 @@ pkgs.mkShell rec {
   ];
 
   shellHook = ''
+    export PATH="$HOME/.cargo/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
     export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath buildInputs}:build/linux/x64/debug/bundle/lib:$LD_LIBRARY_PATH"
     poetry config virtualenvs.in-project true
     poetry install

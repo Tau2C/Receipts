@@ -103,7 +103,6 @@ class _CardsPageState extends State<CardsPage> {
     final isEditing = card != null;
     final formKey = GlobalKey<FormState>();
     String storeName = isEditing ? card.storeName : '';
-    String logoAsset = isEditing ? card.logoAsset : 'assets/images/lidl.png';
     String comment = isEditing
         ? card.comment != null
               ? card.comment!
@@ -177,7 +176,6 @@ class _CardsPageState extends State<CardsPage> {
                   final newCard = CardItem(
                     id: isEditing ? card.id : null,
                     storeName: storeName,
-                    logoAsset: logoAsset,
                     comment: comment,
                     barcodeData: barcodeData,
                     barcodeType: barcodeType,

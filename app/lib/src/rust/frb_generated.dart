@@ -66,7 +66,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 398869661;
+  int get rustContentHash => 638060544;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -77,90 +77,11 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  Decimal crateApiSimpleItemAutoAccessorGetCount({required Item that});
-
-  String crateApiSimpleItemAutoAccessorGetName({required Item that});
-
-  Decimal crateApiSimpleItemAutoAccessorGetPrice({required Item that});
-
-  Decimal crateApiSimpleItemAutoAccessorGetUnitPrice({required Item that});
-
-  void crateApiSimpleItemAutoAccessorSetCount({
-    required Item that,
-    required Decimal count,
-  });
-
-  void crateApiSimpleItemAutoAccessorSetName({
-    required Item that,
-    required String name,
-  });
-
-  void crateApiSimpleItemAutoAccessorSetPrice({
-    required Item that,
-    required Decimal price,
-  });
-
-  void crateApiSimpleItemAutoAccessorSetUnitPrice({
-    required Item that,
-    required Decimal unitPrice,
-  });
-
-  DateTime crateApiSimpleReceiptAutoAccessorGetDate({required Receipt that});
-
-  List<Item> crateApiSimpleReceiptAutoAccessorGetItems({required Receipt that});
-
-  String? crateApiSimpleReceiptAutoAccessorGetNip({required Receipt that});
-
-  Store crateApiSimpleReceiptAutoAccessorGetStore({required Receipt that});
-
-  Decimal crateApiSimpleReceiptAutoAccessorGetTotal({required Receipt that});
-
-  void crateApiSimpleReceiptAutoAccessorSetDate({
-    required Receipt that,
-    required DateTime date,
-  });
-
-  void crateApiSimpleReceiptAutoAccessorSetItems({
-    required Receipt that,
-    required List<Item> items,
-  });
-
-  void crateApiSimpleReceiptAutoAccessorSetNip({
-    required Receipt that,
-    String? nip,
-  });
-
-  void crateApiSimpleReceiptAutoAccessorSetStore({
-    required Receipt that,
-    required Store store,
-  });
-
-  void crateApiSimpleReceiptAutoAccessorSetTotal({
-    required Receipt that,
-    required Decimal total,
-  });
+  List<Receipt> crateApiSimpleFetchReceipts();
 
   String crateApiSimpleGreet({required String name});
 
   Future<void> crateApiSimpleInitApp();
-
-  RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_Decimal;
-
-  RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_Decimal;
-
-  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_DecimalPtr;
-
-  RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_Item;
-
-  RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_Item;
-
-  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_ItemPtr;
-
-  RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_Receipt;
-
-  RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_Receipt;
-
-  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_ReceiptPtr;
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -172,584 +93,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  Decimal crateApiSimpleItemAutoAccessorGetCount({required Item that}) {
+  List<Receipt> crateApiSimpleFetchReceipts() {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-            that,
-            serializer,
-          );
           return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1)!;
         },
         codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal,
+          decodeSuccessData: sse_decode_list_receipt,
           decodeErrorData: null,
         ),
-        constMeta: kCrateApiSimpleItemAutoAccessorGetCountConstMeta,
-        argValues: [that],
+        constMeta: kCrateApiSimpleFetchReceiptsConstMeta,
+        argValues: [],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiSimpleItemAutoAccessorGetCountConstMeta =>
-      const TaskConstMeta(
-        debugName: "Item_auto_accessor_get_count",
-        argNames: ["that"],
-      );
-
-  @override
-  String crateApiSimpleItemAutoAccessorGetName({required Item that}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleItemAutoAccessorGetNameConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleItemAutoAccessorGetNameConstMeta =>
-      const TaskConstMeta(
-        debugName: "Item_auto_accessor_get_name",
-        argNames: ["that"],
-      );
-
-  @override
-  Decimal crateApiSimpleItemAutoAccessorGetPrice({required Item that}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleItemAutoAccessorGetPriceConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleItemAutoAccessorGetPriceConstMeta =>
-      const TaskConstMeta(
-        debugName: "Item_auto_accessor_get_price",
-        argNames: ["that"],
-      );
-
-  @override
-  Decimal crateApiSimpleItemAutoAccessorGetUnitPrice({required Item that}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleItemAutoAccessorGetUnitPriceConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleItemAutoAccessorGetUnitPriceConstMeta =>
-      const TaskConstMeta(
-        debugName: "Item_auto_accessor_get_unit_price",
-        argNames: ["that"],
-      );
-
-  @override
-  void crateApiSimpleItemAutoAccessorSetCount({
-    required Item that,
-    required Decimal count,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-            that,
-            serializer,
-          );
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal(
-            count,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleItemAutoAccessorSetCountConstMeta,
-        argValues: [that, count],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleItemAutoAccessorSetCountConstMeta =>
-      const TaskConstMeta(
-        debugName: "Item_auto_accessor_set_count",
-        argNames: ["that", "count"],
-      );
-
-  @override
-  void crateApiSimpleItemAutoAccessorSetName({
-    required Item that,
-    required String name,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-            that,
-            serializer,
-          );
-          sse_encode_String(name, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleItemAutoAccessorSetNameConstMeta,
-        argValues: [that, name],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleItemAutoAccessorSetNameConstMeta =>
-      const TaskConstMeta(
-        debugName: "Item_auto_accessor_set_name",
-        argNames: ["that", "name"],
-      );
-
-  @override
-  void crateApiSimpleItemAutoAccessorSetPrice({
-    required Item that,
-    required Decimal price,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-            that,
-            serializer,
-          );
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal(
-            price,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleItemAutoAccessorSetPriceConstMeta,
-        argValues: [that, price],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleItemAutoAccessorSetPriceConstMeta =>
-      const TaskConstMeta(
-        debugName: "Item_auto_accessor_set_price",
-        argNames: ["that", "price"],
-      );
-
-  @override
-  void crateApiSimpleItemAutoAccessorSetUnitPrice({
-    required Item that,
-    required Decimal unitPrice,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-            that,
-            serializer,
-          );
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal(
-            unitPrice,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleItemAutoAccessorSetUnitPriceConstMeta,
-        argValues: [that, unitPrice],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleItemAutoAccessorSetUnitPriceConstMeta =>
-      const TaskConstMeta(
-        debugName: "Item_auto_accessor_set_unit_price",
-        argNames: ["that", "unitPrice"],
-      );
-
-  @override
-  DateTime crateApiSimpleReceiptAutoAccessorGetDate({required Receipt that}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Chrono_Naive,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleReceiptAutoAccessorGetDateConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleReceiptAutoAccessorGetDateConstMeta =>
-      const TaskConstMeta(
-        debugName: "Receipt_auto_accessor_get_date",
-        argNames: ["that"],
-      );
-
-  @override
-  List<Item> crateApiSimpleReceiptAutoAccessorGetItems({
-    required Receipt that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleReceiptAutoAccessorGetItemsConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleReceiptAutoAccessorGetItemsConstMeta =>
-      const TaskConstMeta(
-        debugName: "Receipt_auto_accessor_get_items",
-        argNames: ["that"],
-      );
-
-  @override
-  String? crateApiSimpleReceiptAutoAccessorGetNip({required Receipt that}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_opt_String,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleReceiptAutoAccessorGetNipConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleReceiptAutoAccessorGetNipConstMeta =>
-      const TaskConstMeta(
-        debugName: "Receipt_auto_accessor_get_nip",
-        argNames: ["that"],
-      );
-
-  @override
-  Store crateApiSimpleReceiptAutoAccessorGetStore({required Receipt that}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_store,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleReceiptAutoAccessorGetStoreConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleReceiptAutoAccessorGetStoreConstMeta =>
-      const TaskConstMeta(
-        debugName: "Receipt_auto_accessor_get_store",
-        argNames: ["that"],
-      );
-
-  @override
-  Decimal crateApiSimpleReceiptAutoAccessorGetTotal({required Receipt that}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleReceiptAutoAccessorGetTotalConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleReceiptAutoAccessorGetTotalConstMeta =>
-      const TaskConstMeta(
-        debugName: "Receipt_auto_accessor_get_total",
-        argNames: ["that"],
-      );
-
-  @override
-  void crateApiSimpleReceiptAutoAccessorSetDate({
-    required Receipt that,
-    required DateTime date,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-            that,
-            serializer,
-          );
-          sse_encode_Chrono_Naive(date, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleReceiptAutoAccessorSetDateConstMeta,
-        argValues: [that, date],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleReceiptAutoAccessorSetDateConstMeta =>
-      const TaskConstMeta(
-        debugName: "Receipt_auto_accessor_set_date",
-        argNames: ["that", "date"],
-      );
-
-  @override
-  void crateApiSimpleReceiptAutoAccessorSetItems({
-    required Receipt that,
-    required List<Item> items,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-            that,
-            serializer,
-          );
-          sse_encode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-            items,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleReceiptAutoAccessorSetItemsConstMeta,
-        argValues: [that, items],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleReceiptAutoAccessorSetItemsConstMeta =>
-      const TaskConstMeta(
-        debugName: "Receipt_auto_accessor_set_items",
-        argNames: ["that", "items"],
-      );
-
-  @override
-  void crateApiSimpleReceiptAutoAccessorSetNip({
-    required Receipt that,
-    String? nip,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-            that,
-            serializer,
-          );
-          sse_encode_opt_String(nip, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleReceiptAutoAccessorSetNipConstMeta,
-        argValues: [that, nip],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleReceiptAutoAccessorSetNipConstMeta =>
-      const TaskConstMeta(
-        debugName: "Receipt_auto_accessor_set_nip",
-        argNames: ["that", "nip"],
-      );
-
-  @override
-  void crateApiSimpleReceiptAutoAccessorSetStore({
-    required Receipt that,
-    required Store store,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-            that,
-            serializer,
-          );
-          sse_encode_store(store, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleReceiptAutoAccessorSetStoreConstMeta,
-        argValues: [that, store],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleReceiptAutoAccessorSetStoreConstMeta =>
-      const TaskConstMeta(
-        debugName: "Receipt_auto_accessor_set_store",
-        argNames: ["that", "store"],
-      );
-
-  @override
-  void crateApiSimpleReceiptAutoAccessorSetTotal({
-    required Receipt that,
-    required Decimal total,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-            that,
-            serializer,
-          );
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal(
-            total,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleReceiptAutoAccessorSetTotalConstMeta,
-        argValues: [that, total],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleReceiptAutoAccessorSetTotalConstMeta =>
-      const TaskConstMeta(
-        debugName: "Receipt_auto_accessor_set_total",
-        argNames: ["that", "total"],
-      );
+  TaskConstMeta get kCrateApiSimpleFetchReceiptsConstMeta =>
+      const TaskConstMeta(debugName: "fetch_receipts", argNames: []);
 
   @override
   String crateApiSimpleGreet({required String name}) {
@@ -758,7 +121,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(name, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -783,7 +146,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 3,
             port: port_,
           );
         },
@@ -801,124 +164,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiSimpleInitAppConstMeta =>
       const TaskConstMeta(debugName: "init_app", argNames: []);
 
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_Decimal => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_Decimal => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_Item => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_Item => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_Receipt => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_Receipt => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt;
-
-  @protected
-  Decimal
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return DecimalImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  Item
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ItemImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  Receipt
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReceiptImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  Item
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ItemImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  Receipt
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReceiptImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  Item
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ItemImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  Receipt
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReceiptImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
   @protected
   DateTime dco_decode_Chrono_Naive(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dcoDecodeTimestamp(ts: dco_decode_i_64(raw).toInt(), isUtc: true);
-  }
-
-  @protected
-  Decimal
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return DecimalImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  Item
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ItemImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  Receipt
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReceiptImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -928,22 +177,35 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  double dco_decode_f_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as double;
+  }
+
+  @protected
   PlatformInt64 dco_decode_i_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dcoDecodeI64(raw);
   }
 
   @protected
-  List<Item>
-  dco_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    dynamic raw,
-  ) {
+  Item dco_decode_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>)
-        .map(
-          dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem,
-        )
-        .toList();
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return Item(
+      name: dco_decode_String(arr[0]),
+      unitPrice: dco_decode_f_32(arr[1]),
+      count: dco_decode_f_32(arr[2]),
+      price: dco_decode_f_32(arr[3]),
+    );
+  }
+
+  @protected
+  List<Item> dco_decode_list_item(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_item).toList();
   }
 
   @protected
@@ -953,9 +215,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<Receipt> dco_decode_list_receipt(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_receipt).toList();
+  }
+
+  @protected
   String? dco_decode_opt_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_String(raw);
+  }
+
+  @protected
+  Receipt dco_decode_receipt(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return Receipt(
+      nip: dco_decode_opt_String(arr[0]),
+      store: dco_decode_store(arr[1]),
+      items: dco_decode_list_item(arr[2]),
+      total: dco_decode_f_32(arr[3]),
+      date: dco_decode_Chrono_Naive(arr[4]),
+    );
   }
 
   @protected
@@ -986,136 +269,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  BigInt dco_decode_usize(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dcoDecodeU64(raw);
-  }
-
-  @protected
-  Decimal
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return DecimalImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  Item
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ItemImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  Receipt
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReceiptImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  Item
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ItemImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  Receipt
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReceiptImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  Item
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ItemImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  Receipt
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReceiptImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   DateTime sse_decode_Chrono_Naive(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_64(deserializer);
     return DateTime.fromMicrosecondsSinceEpoch(inner.toInt(), isUtc: true);
-  }
-
-  @protected
-  Decimal
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return DecimalImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  Item
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ItemImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  Receipt
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReceiptImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
   }
 
   @protected
@@ -1126,26 +283,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  double sse_decode_f_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getFloat32();
+  }
+
+  @protected
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getPlatformInt64();
   }
 
   @protected
-  List<Item>
-  sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    SseDeserializer deserializer,
-  ) {
+  Item sse_decode_item(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_name = sse_decode_String(deserializer);
+    var var_unitPrice = sse_decode_f_32(deserializer);
+    var var_count = sse_decode_f_32(deserializer);
+    var var_price = sse_decode_f_32(deserializer);
+    return Item(
+      name: var_name,
+      unitPrice: var_unitPrice,
+      count: var_count,
+      price: var_price,
+    );
+  }
+
+  @protected
+  List<Item> sse_decode_list_item(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     var len_ = sse_decode_i_32(deserializer);
     var ans_ = <Item>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(
-        sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-          deserializer,
-        ),
-      );
+      ans_.add(sse_decode_item(deserializer));
     }
     return ans_;
   }
@@ -1158,6 +329,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<Receipt> sse_decode_list_receipt(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <Receipt>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_receipt(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -1166,6 +349,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     } else {
       return null;
     }
+  }
+
+  @protected
+  Receipt sse_decode_receipt(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_nip = sse_decode_opt_String(deserializer);
+    var var_store = sse_decode_store(deserializer);
+    var var_items = sse_decode_list_item(deserializer);
+    var var_total = sse_decode_f_32(deserializer);
+    var var_date = sse_decode_Chrono_Naive(deserializer);
+    return Receipt(
+      nip: var_nip,
+      store: var_store,
+      items: var_items,
+      total: var_total,
+      date: var_date,
+    );
   }
 
   @protected
@@ -1198,12 +398,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  BigInt sse_decode_usize(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getBigUint64();
-  }
-
-  @protected
   int sse_decode_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getInt32();
@@ -1216,140 +410,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal(
-    Decimal self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as DecimalImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    Item self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ItemImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-    Receipt self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReceiptImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    Item self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ItemImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-    Receipt self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReceiptImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    Item self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ItemImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-    Receipt self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReceiptImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
   void sse_encode_Chrono_Naive(DateTime self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_64(
       PlatformInt64Util.from(self.microsecondsSinceEpoch),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDecimal(
-    Decimal self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as DecimalImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    Item self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ItemImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceipt(
-    Receipt self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReceiptImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
@@ -1361,24 +425,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_f_32(double self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putFloat32(self);
+  }
+
+  @protected
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putPlatformInt64(self);
   }
 
   @protected
-  void
-  sse_encode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-    List<Item> self,
-    SseSerializer serializer,
-  ) {
+  void sse_encode_item(Item self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.name, serializer);
+    sse_encode_f_32(self.unitPrice, serializer);
+    sse_encode_f_32(self.count, serializer);
+    sse_encode_f_32(self.price, serializer);
+  }
+
+  @protected
+  void sse_encode_list_item(List<Item> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
-      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerItem(
-        item,
-        serializer,
-      );
+      sse_encode_item(item, serializer);
     }
   }
 
@@ -1393,6 +465,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_receipt(List<Receipt> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_receipt(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -1400,6 +481,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     if (self != null) {
       sse_encode_String(self, serializer);
     }
+  }
+
+  @protected
+  void sse_encode_receipt(Receipt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_String(self.nip, serializer);
+    sse_encode_store(self.store, serializer);
+    sse_encode_list_item(self.items, serializer);
+    sse_encode_f_32(self.total, serializer);
+    sse_encode_Chrono_Naive(self.date, serializer);
   }
 
   @protected
@@ -1428,12 +519,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_usize(BigInt self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putBigUint64(self);
-  }
-
-  @protected
   void sse_encode_i_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putInt32(self);
@@ -1444,121 +529,4 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self ? 1 : 0);
   }
-}
-
-@sealed
-class DecimalImpl extends RustOpaque implements Decimal {
-  // Not to be used by end users
-  DecimalImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  DecimalImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
-    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_Decimal,
-    rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_Decimal,
-    rustArcDecrementStrongCountPtr:
-        RustLib.instance.api.rust_arc_decrement_strong_count_DecimalPtr,
-  );
-}
-
-@sealed
-class ItemImpl extends RustOpaque implements Item {
-  // Not to be used by end users
-  ItemImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  ItemImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
-    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_Item,
-    rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_Item,
-    rustArcDecrementStrongCountPtr:
-        RustLib.instance.api.rust_arc_decrement_strong_count_ItemPtr,
-  );
-
-  Decimal get count =>
-      RustLib.instance.api.crateApiSimpleItemAutoAccessorGetCount(that: this);
-
-  String get name =>
-      RustLib.instance.api.crateApiSimpleItemAutoAccessorGetName(that: this);
-
-  Decimal get price =>
-      RustLib.instance.api.crateApiSimpleItemAutoAccessorGetPrice(that: this);
-
-  Decimal get unitPrice => RustLib.instance.api
-      .crateApiSimpleItemAutoAccessorGetUnitPrice(that: this);
-
-  set count(Decimal count) => RustLib.instance.api
-      .crateApiSimpleItemAutoAccessorSetCount(that: this, count: count);
-
-  set name(String name) => RustLib.instance.api
-      .crateApiSimpleItemAutoAccessorSetName(that: this, name: name);
-
-  set price(Decimal price) => RustLib.instance.api
-      .crateApiSimpleItemAutoAccessorSetPrice(that: this, price: price);
-
-  set unitPrice(Decimal unitPrice) =>
-      RustLib.instance.api.crateApiSimpleItemAutoAccessorSetUnitPrice(
-        that: this,
-        unitPrice: unitPrice,
-      );
-}
-
-@sealed
-class ReceiptImpl extends RustOpaque implements Receipt {
-  // Not to be used by end users
-  ReceiptImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  ReceiptImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
-    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_Receipt,
-    rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_Receipt,
-    rustArcDecrementStrongCountPtr:
-        RustLib.instance.api.rust_arc_decrement_strong_count_ReceiptPtr,
-  );
-
-  DateTime get date =>
-      RustLib.instance.api.crateApiSimpleReceiptAutoAccessorGetDate(that: this);
-
-  List<Item> get items => RustLib.instance.api
-      .crateApiSimpleReceiptAutoAccessorGetItems(that: this);
-
-  String? get nip =>
-      RustLib.instance.api.crateApiSimpleReceiptAutoAccessorGetNip(that: this);
-
-  Store get store => RustLib.instance.api
-      .crateApiSimpleReceiptAutoAccessorGetStore(that: this);
-
-  Decimal get total => RustLib.instance.api
-      .crateApiSimpleReceiptAutoAccessorGetTotal(that: this);
-
-  set date(DateTime date) => RustLib.instance.api
-      .crateApiSimpleReceiptAutoAccessorSetDate(that: this, date: date);
-
-  set items(List<Item> items) => RustLib.instance.api
-      .crateApiSimpleReceiptAutoAccessorSetItems(that: this, items: items);
-
-  set nip(String? nip) => RustLib.instance.api
-      .crateApiSimpleReceiptAutoAccessorSetNip(that: this, nip: nip);
-
-  set store(Store store) => RustLib.instance.api
-      .crateApiSimpleReceiptAutoAccessorSetStore(that: this, store: store);
-
-  set total(Decimal total) => RustLib.instance.api
-      .crateApiSimpleReceiptAutoAccessorSetTotal(that: this, total: total);
 }

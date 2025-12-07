@@ -5,10 +5,14 @@ class SettingsPage extends StatelessWidget {
   final VoidCallback onDatabaseReset;
   const SettingsPage({super.key, required this.onDatabaseReset});
 
-  Future<void> _resetDatabase(BuildContext context) async {
+  Future<void> _resetDatabase(BuildContext context, String? table) async {
     final dbHelper = DatabaseHelper.instance;
     await dbHelper.close();
-    await dbHelper.deleteDatabase();
+    if (table == null) {
+      await dbHelper.deleteDatabase();
+    } else {
+      await dbHelper.resetTable(table);
+    }
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Database has been reset.')));
@@ -30,15 +34,29 @@ class SettingsPage extends StatelessWidget {
                 ),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
+                    onPressed: () {
+                      _resetDatabase(context, "cards");
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Reset cards'),
                   ),
                   TextButton(
                     onPressed: () {
-                      _resetDatabase(context);
+                      _resetDatabase(context, "receipts");
                       Navigator.of(context).pop();
                     },
-                    child: const Text('Reset'),
+                    child: const Text('Reset receipts'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      _resetDatabase(context, null);
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Reset all'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cancel'),
                   ),
                 ],
               ),
