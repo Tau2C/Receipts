@@ -9,40 +9,26 @@ const Map<String, String> logos = {
   'Auchan': 'assets/images/auchan.png',
 };
 
-class CardWidget extends StatefulWidget {
+class CardWidget extends StatelessWidget {
   final CardItem card;
-  final double expandedWidth;
+  final bool isExpanded;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
+  final VoidCallback onPress;
 
   const CardWidget({
     super.key,
     required this.card,
-    required this.expandedWidth,
+    required this.isExpanded,
     required this.onDelete,
     required this.onEdit,
+    required this.onPress,
   });
 
   @override
-  State<CardWidget> createState() => _CardWidgetState();
-}
-
-class _CardWidgetState extends State<CardWidget> {
-  bool _isExpanded = false;
-
-  void _toggleExpanded() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth - 60) / 2;
-
     return GestureDetector(
-      onTap: _toggleExpanded,
+      onTap: onPress,
       onLongPress: () {
         showDialog(
           context: context,
@@ -56,7 +42,7 @@ class _CardWidgetState extends State<CardWidget> {
               ),
               TextButton(
                 onPressed: () {
-                  widget.onDelete();
+                  onDelete();
                   Navigator.of(context).pop();
                 },
                 child: const Text('Delete'),
@@ -65,68 +51,75 @@ class _CardWidgetState extends State<CardWidget> {
           ),
         );
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        width: _isExpanded ? widget.expandedWidth : cardWidth,
-        height: _isExpanded ? widget.expandedWidth : cardWidth,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: _isExpanded ? _buildExpanded() : _buildCollapsed(),
+            child: isExpanded
+                ? _buildExpanded()
+                : _buildCollapsed(constraints.maxWidth),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildCollapsed() {
-    Widget image = Text(widget.card.storeName[0]);
-    if (logos.containsKey(widget.card.storeName)) {
-      if (logos[widget.card.storeName]!.split(".").last == "svg") {
-        image = SvgPicture.asset(logos[widget.card.storeName]!);
+  Widget _buildCollapsed(double cardWidth) {
+    Widget image = Text(card.storeName[0]);
+    if (logos.containsKey(card.storeName)) {
+      if (logos[card.storeName]!.split(".").last == "svg") {
+        image = SvgPicture.asset(
+          logos[card.storeName]!,
+          width: cardWidth - 35 - 15,
+          height: cardWidth - 35 - 15,
+        );
       } else {
         image = Image.asset(
-          logos[widget.card.storeName]!,
-          width: 115,
-          height: 115,
+          logos[card.storeName]!,
+          width: cardWidth - 35,
+          height: cardWidth - 35,
         );
       }
     }
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        image,
-        if (widget.card.comment != null) const SizedBox(height: 10),
-        if (widget.card.comment != null)
-          Text(widget.card.comment!, style: const TextStyle(fontSize: 16)),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          child: image,
+        ),
+        if (card.comment != null) const SizedBox(height: 10),
+        if (card.comment != null)
+          Text(card.comment!, style: const TextStyle(fontSize: 16)),
       ],
     );
   }
 
   Widget _buildExpanded() {
-    Widget image = Text(widget.card.storeName[0]);
-    if (logos.containsKey(widget.card.storeName)) {
-      if (logos[widget.card.storeName]!.split(".").last == "svg") {
-        image = SvgPicture.asset(logos[widget.card.storeName]!, width: 50, height: 50);
+    Widget image = Text(card.storeName[0]);
+    if (logos.containsKey(card.storeName)) {
+      if (logos[card.storeName]!.split(".").last == "svg") {
+        image = SvgPicture.asset(logos[card.storeName]!, width: 50, height: 50);
       } else {
-        image = Image.asset(
-          logos[widget.card.storeName]!,
-          width: 50,
-          height: 50,
-        );
+        image = Image.asset(logos[card.storeName]!, width: 50, height: 50);
       }
     }
 
     double widthFactor;
-    if (widget.card.barcodeType == BarcodeType.QrCode) {
+    if (card.barcodeType == BarcodeType.QrCode) {
       widthFactor = 1.2;
     } else {
       widthFactor = 0.7;
@@ -138,15 +131,16 @@ class _CardWidgetState extends State<CardWidget> {
           alignment: Alignment.topLeft,
           child: Padding(
             padding: const EdgeInsets.all(10),
-            child: image
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              child: image,
+            ),
           ),
         ),
         Align(
           alignment: Alignment.topRight,
-          child: IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: widget.onEdit,
-          ),
+          child: IconButton(icon: const Icon(Icons.edit), onPressed: onEdit),
         ),
         Center(
           child: Column(
@@ -155,13 +149,13 @@ class _CardWidgetState extends State<CardWidget> {
               FractionallySizedBox(
                 widthFactor: widthFactor,
                 child: BarcodeWidget(
-                  barcode: Barcode.fromType(widget.card.barcodeType),
-                  data: widget.card.barcodeData,
+                  barcode: Barcode.fromType(card.barcodeType),
+                  data: card.barcodeData,
                   drawText: false,
                 ),
               ),
               const SizedBox(height: 10),
-              Text(widget.card.barcodeData),
+              Text(card.barcodeData),
             ],
           ),
         ),
