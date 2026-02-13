@@ -1,0 +1,14 @@
+// Project-local debug tasks
+//
+// For more documentation on how to configure debug tasks,
+// see: https://zed.dev/docs/debugger
+[
+  {
+    "label": "Launch shopledger",
+    "adapter": "Dart",
+    "type": "flutter",
+    "program": "lib/main.dart",
+    "request": "launch",
+    "build": "frb: generate"
+  }
+]
