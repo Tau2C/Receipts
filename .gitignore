@@ -12,6 +12,11 @@
 .swiftpm/
 migrate_working_dir/
 
+.!RE/
+acc_state/
+
+*.db
+
 # IntelliJ related
 *.iml
 *.ipr
@@ -57,4 +62,4 @@ target/
 
 # FRB generated files
 /rust/src/frb_generated.rs
-/lib/src/
+/lib/src/rust/

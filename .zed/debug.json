@@ -9,6 +9,6 @@
     "type": "flutter",
     "program": "lib/main.dart",
     "request": "launch",
-    "build": "frb: generate"
+    "build": "Run build_runner"
   }
 ]

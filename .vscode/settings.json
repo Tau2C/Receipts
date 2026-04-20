@@ -1,0 +1,4 @@
+{
+    "nixEnvSelector.nixFile": "${workspaceFolder}/default.nix",
+    "git.ignoreLimitWarning": true
+}
