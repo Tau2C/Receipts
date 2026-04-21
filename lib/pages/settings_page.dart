@@ -27,6 +27,30 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {});
   }
 
+  Future<void> _purgeRetailerReceipts(String retailer) async {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Purging $retailer receipts...')));
+    final db = context.read<DatabaseService>();
+    try {
+      await db.deleteReceiptsByRetailer(retailer: retailer);
+      await db.updateLastFetchDateTime(
+        retailer: retailer,
+        dateTime: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Successfully purged $retailer receipts.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to purge $retailer receipts: $e')),
+      );
+    }
+  }
+
   void _login(String retailer) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -194,6 +218,12 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                           },
                         ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.delete_forever),
+                          title: const Text('Purge Biedronka Receipts'),
+                          onTap: () => _purgeRetailerReceipts('biedronka'),
+                        ),
                       ],
                     )
                   : ListTile(
@@ -247,6 +277,12 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                           },
                         ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.delete_forever),
+                          title: const Text('Purge Lidl Receipts'),
+                          onTap: () => _purgeRetailerReceipts('lidl'),
+                        ),
                       ],
                     )
                   : ListTile(
@@ -299,6 +335,12 @@ class _SettingsPageState extends State<SettingsPage> {
                                   isUtc: true,
                                 ),
                           },
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.delete_forever),
+                          title: const Text('Purge Społem Receipts'),
+                          onTap: () => _purgeRetailerReceipts('spolem'),
                         ),
                       ],
                     )

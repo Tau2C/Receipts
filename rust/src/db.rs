@@ -332,6 +332,19 @@ pub async fn delete_receipt(pool: &SqlitePool, id: i64) -> Result<()> {
     Ok(())
 }
 
+pub async fn delete_receipts_by_retailer(pool: &SqlitePool, retailer: &str) -> Result<u32> {
+    log::debug!("Deleting receipts from {}", &retailer);
+    let result = sqlx::query!("DELETE FROM receipts WHERE store_type = ?", retailer)
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            log::error!("Failed to delete receipts from {}: {:?}", retailer, e);
+            e
+        })?;
+
+    Ok(result.rows_affected() as u32)
+}
+
 pub async fn get_item(pool: &SqlitePool, ean: &str) -> Result<Vec<ReceiptItemSummary>> {
     log::debug!("Fetching items with ean: {}", ean);
     let items = sqlx::query!(

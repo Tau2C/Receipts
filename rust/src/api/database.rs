@@ -133,6 +133,14 @@ impl DatabaseService {
             .map_err(|e| e.into())
     }
 
+    pub async fn delete_receipts_by_retailer(&mut self, retailer: String) -> Result<u32> {
+        log::debug!("Deleting receipt from {}", &retailer);
+        self.receipts_cache = None;
+        db::delete_receipts_by_retailer(&self.pool, &retailer)
+            .await
+            .map_err(|e| e.into())
+    }
+
     pub async fn get_item(&mut self, ean: String) -> Result<Vec<ReceiptItemSummary>> {
         log::debug!("Fetching items with ean: {}", ean);
         db::get_item(&self.pool, &ean).await.map_err(|e| e.into())
