@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:receipts/pages/Spolem_login_page.dart';
+import 'package:receipts/pages/biedronka_login_page.dart';
+import 'package:receipts/pages/lidl_login_page.dart';
 import 'package:receipts/retailer_manager.dart';
 import 'package:receipts/src/rust/api/database.dart';
+import 'package:receipts/src/rust/api/receipts.dart';
 
-const bool enableBiedronka = false; // Disabled for now as not implemented
-const bool enableLidl = false; // Disabled for now as not implemented
+const bool enableBiedronka = true;
+const bool enableLidl = true;
 const bool enableSpolem = true;
 
 class SettingsPage extends StatefulWidget {
@@ -30,6 +33,10 @@ class _SettingsPageState extends State<SettingsPage> {
         builder: (context) {
           if (retailer == 'Społem') {
             return const SpolemLoginPage();
+          } else if (retailer == 'Biedronka') {
+            return const BiedronkaLoginPage();
+          } else if (retailer == 'Lidl') {
+            return const LidlLoginPage();
           }
 
           return const Scaffold(
@@ -62,8 +69,27 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       final lastFetch = client.lastFetch;
       final receipts = lastFetch != null
-          ? await client.fetchReceiptsOlderThan(date: lastFetch)
+          ? await client.fetchReceiptsAfter(date: lastFetch)
           : await client.fetchReceipts();
+
+      if (retailer == "spolem") {
+        for (Receipt r in receipts) {
+          var items = r.items;
+          for (ReceiptItem i in items) {
+            const none = "--brak nazwy--";
+            if (i.name == none && i.ean != null) {
+              var itemHistory = await db.getItem(ean: i.ean!);
+              for (ReceiptItemSummary s in itemHistory) {
+                if (s.item.name != none) {
+                  i.name = s.item.name;
+                  break;
+                }
+              }
+            }
+          }
+          r.items = items;
+        }
+      }
 
       final now = DateTime.now().toUtc();
       client.lastFetch = now;
@@ -125,27 +151,111 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 8),
-          if (enableBiedronka)
+          if (enableSpolem)
             Card(
-              child: ListTile(
-                leading: const Icon(Icons.store),
-                title: const Text('Biedronka'),
-                trailing: const Icon(Icons.login),
-                onTap: () {
-                  // _login('Biedronka');
-                },
-              ),
+              child: _retailerManager.isLoggedIn('biedronka')
+                  ? Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.store),
+                          title: const Text('Biedronka'),
+                          subtitle: const Text('Logged In'),
+                          trailing: TextButton(
+                            child: const Text('LOGOUT'),
+                            onPressed: () => _logout('biedronka'),
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.receipt_long),
+                          title: const Text('Fetch Receipts'),
+                          onTap: () => _fetchReceipts('biedronka'),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.dangerous),
+                          title: const Text(
+                            'Clear last fetch time (next fetch is FULL)',
+                          ),
+                          onTap: () async => {
+                            await context
+                                .read<DatabaseService>()
+                                .updateLastFetchDateTime(
+                                  retailer: 'biedronka',
+                                  dateTime: DateTime.fromMillisecondsSinceEpoch(
+                                    0,
+                                    isUtc: true,
+                                  ),
+                                ),
+                            _retailerManager.getClient('biedronka')?.lastFetch =
+                                DateTime.fromMillisecondsSinceEpoch(
+                                  0,
+                                  isUtc: true,
+                                ),
+                          },
+                        ),
+                      ],
+                    )
+                  : ListTile(
+                      leading: const Icon(Icons.store),
+                      title: const Text('Biedronka'),
+                      subtitle: const Text('Not logged in'),
+                      trailing: const Icon(Icons.login),
+                      onTap: () => _login('Biedronka'),
+                    ),
             ),
           if (enableLidl)
             Card(
-              child: ListTile(
-                leading: const Icon(Icons.store),
-                title: const Text('Lidl'),
-                trailing: const Icon(Icons.login),
-                onTap: () {
-                  // _login('Lidl');
-                },
-              ),
+              child: _retailerManager.isLoggedIn('lidl')
+                  ? Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.store),
+                          title: const Text('Lidl'),
+                          subtitle: const Text('Logged In'),
+                          trailing: TextButton(
+                            child: const Text('LOGOUT'),
+                            onPressed: () => _logout('lidl'),
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.receipt_long),
+                          title: const Text('Fetch Receipts'),
+                          onTap: () => _fetchReceipts('lidl'),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.dangerous),
+                          title: const Text(
+                            'Clear last fetch time (next fetch is FULL)',
+                          ),
+                          onTap: () async => {
+                            await context
+                                .read<DatabaseService>()
+                                .updateLastFetchDateTime(
+                                  retailer: 'lidl',
+                                  dateTime: DateTime.fromMillisecondsSinceEpoch(
+                                    0,
+                                    isUtc: true,
+                                  ),
+                                ),
+                            _retailerManager.getClient('lidl')?.lastFetch =
+                                DateTime.fromMillisecondsSinceEpoch(
+                                  0,
+                                  isUtc: true,
+                                ),
+                          },
+                        ),
+                      ],
+                    )
+                  : ListTile(
+                      leading: const Icon(Icons.store),
+                      title: const Text('Lidl'),
+                      subtitle: const Text('Not logged in'),
+                      trailing: const Icon(Icons.login),
+                      onTap: () => _login('Lidl'),
+                    ),
             ),
           if (enableSpolem)
             Card(
@@ -166,6 +276,29 @@ class _SettingsPageState extends State<SettingsPage> {
                           leading: const Icon(Icons.receipt_long),
                           title: const Text('Fetch Receipts'),
                           onTap: () => _fetchReceipts('spolem'),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.dangerous),
+                          title: const Text(
+                            'Clear last fetch time (next fetch is FULL)',
+                          ),
+                          onTap: () async => {
+                            await context
+                                .read<DatabaseService>()
+                                .updateLastFetchDateTime(
+                                  retailer: 'spolem',
+                                  dateTime: DateTime.fromMillisecondsSinceEpoch(
+                                    0,
+                                    isUtc: true,
+                                  ),
+                                ),
+                            _retailerManager.getClient('spolem')?.lastFetch =
+                                DateTime.fromMillisecondsSinceEpoch(
+                                  0,
+                                  isUtc: true,
+                                ),
+                          },
                         ),
                       ],
                     )

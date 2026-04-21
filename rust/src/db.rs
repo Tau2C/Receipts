@@ -1,6 +1,8 @@
 use crate::api::{
     card::Card,
-    receipts::{Receipt, ReceiptItem, ReceiptPayment, ReceiptPaymentType, ReceiptStore, TaxGroup},
+    receipts::{
+        Receipt, ReceiptItem, ReceiptItemSummary, ReceiptPayment, ReceiptPaymentType, ReceiptStore,
+    },
 };
 use chrono::{DateTime, Utc};
 use futures::StreamExt;
@@ -174,8 +176,7 @@ pub async fn get_receipts(pool: &SqlitePool) -> Result<Vec<Receipt>> {
                             i.count as f32,
                             Vec::new(),
                             i.total as f32,
-                            i.tax_group
-                                .map(|s| TaxGroup::from_str(&s).unwrap_or(TaxGroup::X)),
+                            i.tax_group,
                             i.tax_rate.map(|f| f as f32),
                         )
                     })
@@ -243,16 +244,13 @@ pub async fn insert_receipt(pool: &SqlitePool, mut receipt: Receipt) -> Result<R
     log::debug!("Inserted receipt header ID: {}", receipt_id);
 
     for item in &receipt.items {
-        let price = item.price();
-        let count = item.count();
-        let item_total = item.total();
-        let tax_group = item.tax_group().map(|tg| {
-            let static_str: &str = tg.into();
-            static_str.to_string()
-        });
-        let tax_rate = item.tax_rate();
-        let ean = item.ean();
-        let name = item.name();
+        let price = item.get_price();
+        let count = item.get_count();
+        let item_total = item.get_total();
+        let tax_group = item.get_tax_group();
+        let tax_rate = item.get_tax_rate();
+        let ean = item.get_ean();
+        let name = item.get_name();
 
         sqlx::query!(
             r#"
@@ -332,6 +330,49 @@ pub async fn delete_receipt(pool: &SqlitePool, id: i64) -> Result<()> {
             e
         })?;
     Ok(())
+}
+
+pub async fn get_item(pool: &SqlitePool, ean: &str) -> Result<Vec<ReceiptItemSummary>> {
+    log::debug!("Fetching items with ean: {}", ean);
+    let items = sqlx::query!(
+        r#"
+        SELECT ri.ean, ri.name, ri.price, ri.count, ri.total, ri.tax_group, ri.tax_rate, r.issued_at, r.store_type, r.store_value
+        FROM receipt_items ri JOIN receipts r ON r.id = ri.receipt_id WHERE ean = ?
+        "#,
+        ean
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|e| {
+        log::error!("Failed to fetch items for ean {}: {:?}", ean, e);
+        e
+    })?;
+
+    Ok(items
+        .into_iter()
+        .map(|i| {
+            ReceiptItemSummary::new(
+                ReceiptItem::new(
+                    i.ean,
+                    i.name,
+                    i.price as f32,
+                    i.count as f32,
+                    Vec::new(),
+                    i.total as f32,
+                    i.tax_group,
+                    i.tax_rate.map(|f| f as f32),
+                ),
+                DateTime::parse_from_rfc3339(&i.issued_at).unwrap().to_utc(),
+                if i.store_type.is_some() && i.store_value.is_some() {
+                    unsafe {
+                        ReceiptStore::from_parts(&i.store_type.unwrap(), i.store_value.unwrap())
+                    }
+                } else {
+                    ReceiptStore::Other("".to_string())
+                },
+            )
+        })
+        .collect())
 }
 
 #[derive(Debug)]

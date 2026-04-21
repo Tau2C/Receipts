@@ -1,0 +1,56 @@
+{
+  "db_name": "SQLite",
+  "query": "\n                SELECT ean, name, price, count, total, tax_group, tax_rate\n                FROM receipt_items WHERE receipt_id = ?\n                ",
+  "describe": {
+    "columns": [
+      {
+        "name": "ean",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "price",
+        "ordinal": 2,
+        "type_info": "Float"
+      },
+      {
+        "name": "count",
+        "ordinal": 3,
+        "type_info": "Float"
+      },
+      {
+        "name": "total",
+        "ordinal": 4,
+        "type_info": "Float"
+      },
+      {
+        "name": "tax_group",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "tax_rate",
+        "ordinal": 6,
+        "type_info": "Float"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "cf45558fc6a1c69aa512e22994538024844c7aab03f362e769f40147b0f17553"
+}

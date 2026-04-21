@@ -71,11 +71,18 @@ impl Receipt {
         self.issued_at
     }
 
-    #[frb(sync, getter, unignore)]
+    #[frb(sync, getter)]
     #[inline]
-    pub fn items(&self) -> Vec<ReceiptItem> {
+    pub fn get_items(&self) -> Vec<ReceiptItem> {
         log::debug!("Receipt::items getter called");
         self.items.clone()
+    }
+
+    #[frb(sync, setter)]
+    #[inline]
+    pub fn set_items(&mut self, value: Vec<ReceiptItem>) {
+        log::debug!("Receipt::items setter called");
+        self.items = value;
     }
 
     #[frb(sync, getter)]
@@ -150,6 +157,36 @@ impl ReceiptDiscount {
 }
 
 #[derive(Debug, Clone)]
+#[frb]
+pub struct ReceiptItemSummary {
+    item: ReceiptItem,
+    date: DateTime<Utc>,
+    store: ReceiptStore,
+}
+
+impl ReceiptItemSummary {
+    #[frb(ignore)]
+    pub fn new(item: ReceiptItem, date: DateTime<Utc>, store: ReceiptStore) -> Self {
+        Self { item, date, store }
+    }
+
+    #[frb(sync, getter)]
+    pub fn item(&self) -> ReceiptItem {
+        self.item.clone()
+    }
+
+    #[frb(sync, getter)]
+    pub fn date(&self) -> DateTime<Utc> {
+        self.date.clone()
+    }
+
+    #[frb(sync, getter)]
+    pub fn store(&self) -> ReceiptStore {
+        self.store.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct ReceiptItem {
     ean: Option<String>,
     name: String,
@@ -157,7 +194,7 @@ pub struct ReceiptItem {
     count: Milli<u32>,
     discounts: Vec<ReceiptItemDiscount>,
     total: Centi<u32>,
-    tax_group: Option<TaxGroup>,
+    tax_group: Option<String>,
     tax_rate: Option<Centi<u16>>,
 }
 
@@ -170,7 +207,7 @@ impl ReceiptItem {
         count: f32,
         discounts: Vec<ReceiptItemDiscount>,
         total: f32,
-        tax_group: Option<TaxGroup>,
+        tax_group: Option<String>,
         tax_rate: Option<f32>,
     ) -> Self {
         log::debug!("ReceiptItem::new called for item: {}", name);
@@ -188,56 +225,63 @@ impl ReceiptItem {
 
     #[frb(sync, getter)]
     #[inline]
-    pub fn ean(&self) -> Option<String> {
+    pub fn get_ean(&self) -> Option<String> {
         log::debug!("ReceiptItem::ean getter called");
         self.ean.clone()
     }
 
     #[frb(sync, getter)]
     #[inline]
-    pub fn name(&self) -> String {
+    pub fn get_name(&self) -> String {
         log::debug!("ReceiptItem::name getter called");
         self.name.clone()
     }
 
+    #[frb(sync, setter)]
+    #[inline]
+    pub fn set_name(&mut self, value: String) {
+        log::debug!("ReceiptItem::name setter called");
+        self.name = value;
+    }
+
     #[frb(sync, getter)]
     #[inline]
-    pub fn price(&self) -> f32 {
+    pub fn get_price(&self) -> f32 {
         log::debug!("ReceiptItem::price getter called");
         self.price.bits as f32 / 100.0
     }
 
     #[frb(sync, getter)]
     #[inline]
-    pub fn count(&self) -> f32 {
+    pub fn get_count(&self) -> f32 {
         log::debug!("ReceiptItem::count getter called");
         self.count.bits as f32 / 1000.0
     }
 
     #[frb(sync, getter)]
     #[inline]
-    pub fn discounts(&self) -> Vec<ReceiptItemDiscount> {
+    pub fn get_discounts(&self) -> Vec<ReceiptItemDiscount> {
         log::debug!("ReceiptItem::discounts getter called");
         self.discounts.clone()
     }
 
     #[frb(sync, getter)]
     #[inline]
-    pub fn total(&self) -> f32 {
+    pub fn get_total(&self) -> f32 {
         log::debug!("ReceiptItem::total getter called");
         self.total.bits as f32 / 100.0
     }
 
     #[frb(sync, getter)]
     #[inline]
-    pub fn tax_group(&self) -> Option<TaxGroup> {
+    pub fn get_tax_group(&self) -> Option<String> {
         log::debug!("ReceiptItem::tax_group getter called");
-        self.tax_group
+        self.tax_group.clone()
     }
 
     #[frb(sync, getter)]
     #[inline]
-    pub fn tax_rate(&self) -> Option<f32> {
+    pub fn get_tax_rate(&self) -> Option<f32> {
         log::debug!("ReceiptItem::tax_rate getter called");
         self.tax_rate.map(|f| f.bits as f32 / 100.0)
     }
@@ -254,18 +298,9 @@ impl ReceiptItemDiscount {
     }
 }
 
-#[derive(Debug, Clone, Copy, EnumString, IntoStaticStr)]
-pub enum TaxGroup {
-    A,
-    B,
-    C,
-    E,
-    X,
-}
-
 #[derive(Debug, Clone)]
 pub struct ReceiptTaxSummary {
-    tax_group: TaxGroup,
+    tax_group: Option<String>,
     tax_rate: Centi<u16>,
     sales_value: Centi<u16>,
     tax_value: Centi<u16>,
@@ -273,7 +308,7 @@ pub struct ReceiptTaxSummary {
 
 impl ReceiptTaxSummary {
     #[frb(sync)]
-    pub fn new(tax_group: TaxGroup, tax_rate: f32, sales_value: f32, tax_value: f32) -> Self {
+    pub fn new(tax_group: Option<String>, tax_rate: f32, sales_value: f32, tax_value: f32) -> Self {
         log::debug!("ReceiptTaxSummary::new called for group: {:?}", tax_group);
         Self {
             tax_group,
@@ -285,9 +320,9 @@ impl ReceiptTaxSummary {
 
     #[frb(sync, getter)]
     #[inline]
-    pub fn tax_group(&self) -> TaxGroup {
+    pub fn tax_group(&self) -> Option<String> {
         log::debug!("ReceiptTaxSummary::tax_group getter called");
-        self.tax_group
+        self.tax_group.clone()
     }
 
     #[frb(sync, getter)]

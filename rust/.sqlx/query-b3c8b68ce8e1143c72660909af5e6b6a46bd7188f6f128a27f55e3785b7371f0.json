@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE retailers SET last_fetch_date_time = ? WHERE name = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "b3c8b68ce8e1143c72660909af5e6b6a46bd7188f6f128a27f55e3785b7371f0"
+}

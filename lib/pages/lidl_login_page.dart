@@ -4,19 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:receipts/retailer_manager.dart';
 import 'package:receipts/src/rust/api/database.dart';
-import 'package:receipts/src/rust/api/retailers/biedronka.dart';
+import 'package:receipts/src/rust/api/retailers/lidl.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-class BiedronkaLoginPage extends StatefulWidget {
-  const BiedronkaLoginPage({super.key});
+class LidlLoginPage extends StatefulWidget {
+  const LidlLoginPage({super.key});
 
   @override
-  State<BiedronkaLoginPage> createState() => _BiedronkaLoginPageState();
+  State<LidlLoginPage> createState() => _LidlLoginPageState();
 }
 
-class _BiedronkaLoginPageState extends State<BiedronkaLoginPage> {
+class _LidlLoginPageState extends State<LidlLoginPage> {
   bool _isLoading = false;
-  final _biedronka = BiedronkaClient(lastFetch: null);
+  final _lidl = LidlClient();
   String? _pkceVerifierSecret;
   String? _csrfTokenSecret;
 
@@ -47,21 +47,21 @@ class _BiedronkaLoginPageState extends State<BiedronkaLoginPage> {
     }
 
     try {
-      await _biedronka.exchangeCodeForToken(
+      await _lidl.exchangeCodeForToken(
         code: code,
         pkceVerifierSecret: _pkceVerifierSecret!,
         stateFromRedirect: state,
         csrfSecret: _csrfTokenSecret!,
       );
 
-      final refreshToken = await _biedronka.getRefreshToken();
+      final refreshToken = _lidl.getRefreshToken();
       if (refreshToken == null) {
         throw Exception("Did not get a refresh token");
       }
 
       final db = context.read<DatabaseService>();
       final success = await RetailerManager().loginRetailer(
-        'biedronka',
+        'lidl',
         refreshToken,
         db,
       );
@@ -97,27 +97,27 @@ class _BiedronkaLoginPageState extends State<BiedronkaLoginPage> {
     });
 
     try {
-      final authUrl = await _biedronka.getAuthenticationUrl();
+      final authUrl = await _lidl.getAuthenticationUrl();
       _pkceVerifierSecret = authUrl.pkceVerifierSecret;
       _csrfTokenSecret = authUrl.csrfTokenSecret;
 
-      // Use a WebView to open the authentication URL
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => Scaffold(
-            appBar: AppBar(title: const Text('Login to Biedronka')),
+            appBar: AppBar(title: const Text('Login to Lidl')),
             body: WebViewWidget(
               controller: WebViewController()
                 ..setJavaScriptMode(JavaScriptMode.unrestricted)
                 ..setNavigationDelegate(
                   NavigationDelegate(
                     onNavigationRequest: (request) async {
-                      if (request.url.startsWith(BiedronkaClient.callbackUrl)) {
+                      if (request.url.startsWith(LidlClient.callbackUrl)) {
+                        // Use LidlClient callbackUrl
                         // Intercept the callback URL
                         final uri = Uri.parse(request.url);
                         await _exchangeCode(uri);
                         if (mounted) {
-                          Navigator.of(context).pop(); // Close the webview
+                          Navigator.of(context).pop();
                         }
                         return NavigationDecision.prevent;
                       }
@@ -146,13 +146,13 @@ class _BiedronkaLoginPageState extends State<BiedronkaLoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login to Biedronka')),
+      appBar: AppBar(title: const Text('Login to Lidl')),
       body: Center(
         child: _isLoading
             ? const CircularProgressIndicator()
             : ElevatedButton(
                 onPressed: _login,
-                child: const Text('Login with Biedronka'),
+                child: const Text('Login with Lidl'),
               ),
       ),
     );

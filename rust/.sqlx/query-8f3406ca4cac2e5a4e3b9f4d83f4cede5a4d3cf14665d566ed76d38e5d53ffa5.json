@@ -1,0 +1,50 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT id, store_type, store_value, issued_at, total, tax_total\n            FROM receipts\n            ORDER BY issued_at DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "store_type",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "store_value",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "issued_at",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "total",
+        "ordinal": 4,
+        "type_info": "Float"
+      },
+      {
+        "name": "tax_total",
+        "ordinal": 5,
+        "type_info": "Float"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "8f3406ca4cac2e5a4e3b9f4d83f4cede5a4d3cf14665d566ed76d38e5d53ffa5"
+}

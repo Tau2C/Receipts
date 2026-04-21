@@ -29,6 +29,7 @@ pub struct SpolemClient {
 impl SpolemClient {
     #[frb(sync)]
     pub fn new(last_fetch: Option<DateTime<Utc>>) -> Self {
+        log::debug!("SpolemClient::new");
         Self {
             client: reqwest::Client::new(),
             last_fetch,
@@ -38,6 +39,7 @@ impl SpolemClient {
 
     #[frb(sync)]
     pub fn from_token(token: String, last_fetch: Option<DateTime<Utc>>) -> Self {
+        log::debug!("SpolemClient::from_token");
         Self {
             client: reqwest::Client::new(),
             last_fetch,
@@ -45,20 +47,11 @@ impl SpolemClient {
         }
     }
 
-    #[frb(sync, getter)]
-    pub fn get_last_fetch(&mut self) -> Option<DateTime<Utc>> {
-        self.last_fetch
-    }
-
-    #[frb(sync, setter)]
-    pub fn set_last_fetch(&mut self, value: Option<DateTime<Utc>>) {
-        self.last_fetch = value
-    }
-
     pub async fn login_first_step_with_card(
         &self,
         card_nr: &str,
     ) -> Result<LoginFirstStepResponse, reqwest::Error> {
+        log::debug!("SpolemClient::login_first_step_with_card");
         let request_body = LoginFirstStepRequestWithCard { card_nr };
         let request = self
             .client
@@ -74,21 +67,39 @@ impl SpolemClient {
             }
         };
 
-        response.json::<LoginFirstStepResponse>().await
+        let result = response.json::<LoginFirstStepResponse>().await;
+        if let Err(e) = &result {
+            log::error!("Failed to parse LoginFirstStepResponse JSON: {:?}", e);
+        }
+        result
     }
 
     pub async fn login_first_step_with_phone(
         &self,
         phone: &str,
     ) -> Result<LoginFirstStepResponse, reqwest::Error> {
+        log::debug!("SpolemClient::login_first_step_with_phone");
         let request_body = LoginFirstStepRequestWithPhone { phone };
-        self.client
+        let response = self
+            .client
             .post(format!("{}/auth/login-first-step", BASE_URL))
             .json(&request_body)
             .send()
-            .await?
-            .json::<LoginFirstStepResponse>()
-            .await
+            .await;
+
+        let response = match response {
+            Ok(response) => response,
+            Err(e) => {
+                log::error!("Login first step with phone request failed: {:#?}", e);
+                return Err(e);
+            }
+        };
+
+        let result = response.json::<LoginFirstStepResponse>().await;
+        if let Err(e) = &result {
+            log::error!("Failed to parse LoginFirstStepResponse JSON: {:?}", e);
+        }
+        result
     }
 
     pub async fn login_last_step(
@@ -96,15 +107,32 @@ impl SpolemClient {
         phone: &str,
         code: &str,
     ) -> Result<LoginLastStepResponse, reqwest::Error> {
+        log::debug!("SpolemClient::login_last_step");
         let request_body = LoginLastStepRequest { phone, code };
         let response = self
             .client
             .post(format!("{}/auth/login-last-step", BASE_URL))
             .json(&request_body)
             .send()
-            .await?
-            .json::<LoginLastStepResponse>()
-            .await?;
+            .await;
+
+        let response = match response {
+            Ok(response) => response,
+            Err(e) => {
+                log::error!("Login last step request failed: {:#?}", e);
+                return Err(e);
+            }
+        };
+
+        let response_result = response.json::<LoginLastStepResponse>().await;
+
+        let response = match response_result {
+            Ok(response) => response,
+            Err(e) => {
+                log::error!("Failed to parse LoginLastStepResponse JSON: {:?}", e);
+                return Err(e);
+            }
+        };
 
         if response.success {
             self.token = Some(response.token.clone());
@@ -114,6 +142,7 @@ impl SpolemClient {
     }
 
     pub async fn verify_token(&mut self) -> Result<VerifyTokenResponse, FetchError> {
+        log::debug!("SpolemClient::verify_token");
         let token = self
             .token
             .as_ref()
@@ -139,9 +168,12 @@ impl SpolemClient {
         match status {
             StatusCode::OK => {
                 let verify_response: VerifyTokenResponse = serde_json::from_str(&response_text)
-                    .map_err(|_| FetchError::ClientError {
-                        file: file!().to_string(),
-                        line: line!(),
+                    .map_err(|e| {
+                        log::error!("Failed to parse VerifyTokenResponse JSON: {:?}", e);
+                        FetchError::ClientError {
+                            file: file!().to_string(),
+                            line: line!(),
+                        }
                     })?;
                 if verify_response.success {
                     self.token = Some(verify_response.token.clone());
@@ -154,25 +186,33 @@ impl SpolemClient {
                 }
             }
             StatusCode::BAD_REQUEST => {
-                if let Ok(error_body) = serde_json::from_str::<ErrorResponse>(&response_text) {
-                    if error_body.message == "Token is already valid" {
-                        Ok(VerifyTokenResponse {
-                            success: true,
-                            token: token,
-                            shop_id: 0,
-                        })
-                    } else {
-                        Err(FetchError::BadRequest {
-                            message: error_body.message,
+                let error_body_result = serde_json::from_str::<ErrorResponse>(&response_text);
+                match error_body_result {
+                    Ok(error_body) => {
+                        if error_body.message == "Token is already valid" {
+                            Ok(VerifyTokenResponse {
+                                success: true,
+                                token: token,
+                                shop_id: 0,
+                            })
+                        } else {
+                            Err(FetchError::BadRequest {
+                                message: error_body.message,
+                                file: file!().to_string(),
+                                line: line!(),
+                            })
+                        }
+                    }
+                    Err(e) => {
+                        log::error!(
+                            "Failed to parse ErrorResponse JSON from BAD_REQUEST: {:?}",
+                            e
+                        );
+                        Err(FetchError::ClientError {
                             file: file!().to_string(),
                             line: line!(),
                         })
                     }
-                } else {
-                    Err(FetchError::ClientError {
-                        file: file!().to_string(),
-                        line: line!(),
-                    })
                 }
             }
             _ => Err(FetchError::UnexpectedStatus {
@@ -183,10 +223,12 @@ impl SpolemClient {
         }
     }
 
+    #[frb(ignore)]
     pub async fn fetch_transactions_page(
         &self,
         page: u32,
     ) -> Result<PagedTransactions, FetchError> {
+        log::debug!("SpolemClient::fetch_transactions_page, page: {}", page);
         let token = self.token.as_ref().ok_or(FetchError::InavlidLogin {
             file: file!().to_string(),
             line: line!(),
@@ -199,20 +241,38 @@ impl SpolemClient {
             .await
             .map_err(|e| map_reqwest_error(e, file!().to_string(), line!()))?;
 
-        let paged_transactions = response
-            .json::<PagedTransactions>()
-            .await
-            .map_err(|e| map_reqwest_error(e, file!().to_string(), line!()))?;
+        let response_text = response.text().await.map_err(|e| {
+            log::error!("Failed to read response text: {:?}", e);
+            map_reqwest_error(e, file!().to_string(), line!())
+        })?;
+
+        let paged_transactions = serde_json::from_str::<PagedTransactions>(&response_text)
+            .map_err(|e| {
+                log::error!(
+                    "Failed to parse PagedTransactions JSON: {:?}, json: {}",
+                    e,
+                    response_text
+                );
+                FetchError::ClientError {
+                    file: file!().to_string(),
+                    line: line!(),
+                }
+            })?;
 
         debug!("Fetched page {}: {:#?}", page, paged_transactions.meta);
 
         Ok(paged_transactions)
     }
 
+    #[frb(ignore)]
     pub async fn fetch_transaction_details(
         &self,
         transaction: &Transaction,
     ) -> Result<TransactionWithDetails, FetchError> {
+        log::debug!(
+            "SpolemClient::fetch_transaction_details, id: {}",
+            transaction.transaction_id
+        );
         let token = self.token.as_ref().ok_or(FetchError::InavlidLogin {
             file: file!().to_string(),
             line: line!(),
@@ -229,7 +289,10 @@ impl SpolemClient {
             .map_err(|e| map_reqwest_error(e, file!().to_string(), line!()))?
             .json::<TransactionDetails>()
             .await
-            .map_err(|e| map_reqwest_error(e, file!().to_string(), line!()))?;
+            .map_err(|e| {
+                log::error!("Failed to parse TransactionDetails JSON: {:?}", e);
+                map_reqwest_error(e, file!().to_string(), line!())
+            })?;
 
         debug!(
             "Transaction details for {}: {:#?}",
@@ -243,16 +306,32 @@ impl SpolemClient {
         Ok(twd)
     }
 
-    pub async fn fetch_all_receipts(&self) -> Result<Vec<TransactionWithDetails>, FetchError> {
+    #[frb(ignore)]
+    pub async fn fetch_all_receipts(
+        &self,
+        date: DateTime<Utc>,
+    ) -> Result<Vec<TransactionWithDetails>, FetchError> {
+        log::debug!("SpolemClient::fetch_all_receipts, date: {}", date);
         let mut receipts = Vec::new();
         let mut page = 1;
-        loop {
+        'main: loop {
             let paged_transactions = self.fetch_transactions_page(page).await?;
 
             for tx in paged_transactions.data {
-                debug!("Processing transaction: {}", tx.transaction_id);
-                let transaction = self.fetch_transaction_details(&tx).await?;
-                receipts.push(transaction);
+                if let Ok(tx_date) = NaiveDateTime::parse_from_str(&tx.date, "%Y-%m-%d %H:%M:%S") {
+                    if date
+                        > tx_date
+                            .and_local_timezone(Local)
+                            .earliest()
+                            .unwrap()
+                            .to_utc()
+                    {
+                        break 'main;
+                    }
+                    debug!("Processing transaction: {}", tx.transaction_id);
+                    let transaction = self.fetch_transaction_details(&tx).await?;
+                    receipts.push(transaction);
+                }
             }
 
             if paged_transactions.links.next.is_none() {
@@ -265,6 +344,7 @@ impl SpolemClient {
 }
 
 fn map_reqwest_error(error: reqwest::Error, file: String, line: u32) -> FetchError {
+    log::debug!("map_reqwest_error, file: {}, line: {}", file, line);
     log::error!("{} {}", file, line);
     if error.is_status() {
         match error.status() {
@@ -285,9 +365,19 @@ fn map_reqwest_error(error: reqwest::Error, file: String, line: u32) -> FetchErr
 }
 
 impl ReceiptProvider for SpolemClient {
-    async fn fetch_receipts(&mut self) -> Result<Vec<receipts::Receipt>, FetchError> {
+    async fn fetch_receipts(&mut self) -> anyhow::Result<Vec<receipts::Receipt>> {
+        log::debug!("SpolemClient::fetch_receipts");
+        self.fetch_receipts_after(DateTime::from_timestamp_secs(0).unwrap())
+            .await
+    }
+
+    async fn fetch_receipts_after(
+        &mut self,
+        date: DateTime<Utc>,
+    ) -> anyhow::Result<Vec<receipts::Receipt>> {
+        log::debug!("SpolemClient::fetch_receipts_after, date: {}", date);
         Ok(self
-            .fetch_all_receipts()
+            .fetch_all_receipts(date)
             .await?
             .into_iter()
             .map(|t| {
@@ -382,21 +472,22 @@ impl ReceiptProvider for SpolemClient {
             .collect())
     }
 
-    async fn fetch_receipts_older_than(
-        &mut self,
-        date: DateTime<Utc>,
-    ) -> Result<Vec<receipts::Receipt>, FetchError> {
-        let r = self.fetch_receipts().await;
-        if let Ok(r) = r {
-            Ok(r.into_iter().filter(|r| r.issued_at() >= date).collect())
-        } else {
-            r
-        }
+    #[frb(sync, getter)]
+    fn get_last_fetch(&self) -> Option<DateTime<Utc>> {
+        log::debug!("SpolemClient::get_last_fetch");
+        self.last_fetch
+    }
+
+    #[frb(sync, setter)]
+    fn set_last_fetch(&mut self, value: Option<DateTime<Utc>>) {
+        log::debug!("SpolemClient::set_last_fetch");
+        self.last_fetch = value
     }
 }
 
 impl CardProvider for SpolemClient {
     async fn fetch_card(&mut self) -> Result<Card, FetchError> {
+        log::debug!("SpolemClient::fetch_card");
         let token = self.token.as_ref().ok_or(FetchError::InavlidLogin {
             file: file!().to_string(),
             line: line!(),
@@ -411,7 +502,10 @@ impl CardProvider for SpolemClient {
             .map_err(|e| map_reqwest_error(e, file!().to_string(), line!()))?
             .json::<UserProfileData>()
             .await
-            .map_err(|e| map_reqwest_error(e, file!().to_string(), line!()))?;
+            .map_err(|e| {
+                log::error!("Failed to parse UserProfileData JSON: {:?}", e);
+                map_reqwest_error(e, file!().to_string(), line!())
+            })?;
 
         let user_profile = profile_data.data;
         let first_card = user_profile.ecards.first().or(user_profile.cards.first());

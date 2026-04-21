@@ -157,13 +157,13 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
     ReceiptStore receiptStore;
     final lowerName = _selectedStoreName.toLowerCase();
     if (lowerName.contains('biedronka')) {
-      receiptStore = ReceiptStore.biedronka(id: _selectedStoreName);
+      receiptStore = ReceiptStore.biedronka(_selectedStoreName);
     } else if (lowerName.contains('lidl')) {
-      receiptStore = ReceiptStore.lidl(id: _selectedStoreName);
+      receiptStore = ReceiptStore.lidl(_selectedStoreName);
     } else if (lowerName.contains('społem') || lowerName.contains('spolem')) {
-      receiptStore = ReceiptStore.spolem(id: _selectedStoreName);
+      receiptStore = ReceiptStore.spolem(_selectedStoreName);
     } else {
-      receiptStore = ReceiptStore.other(name: _selectedStoreName);
+      receiptStore = ReceiptStore.other(_selectedStoreName);
     }
 
     final newReceipt = Receipt(
@@ -434,7 +434,7 @@ extension on ReceiptItem {
     double? count,
     List<ReceiptItemDiscount>? discounts,
     double? total,
-    TaxGroup? taxGroup,
+    String? taxGroup,
     double? taxRate,
   }) {
     return ReceiptItem(

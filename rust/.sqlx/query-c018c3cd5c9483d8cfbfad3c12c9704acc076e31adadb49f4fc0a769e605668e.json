@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT last_fetch_date_time FROM retailers WHERE name = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "last_fetch_date_time",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "c018c3cd5c9483d8cfbfad3c12c9704acc076e31adadb49f4fc0a769e605668e"
+}

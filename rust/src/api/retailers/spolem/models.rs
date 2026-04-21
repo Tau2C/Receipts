@@ -1,17 +1,21 @@
+use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
 
 // === Login First Step ===
 #[derive(Serialize)]
+#[frb(ignore)]
 pub struct LoginFirstStepRequestWithCard<'a> {
     pub card_nr: &'a str,
 }
 
 #[derive(Serialize)]
+#[frb(ignore)]
 pub struct LoginFirstStepRequestWithPhone<'a> {
     pub phone: &'a str,
 }
 
 #[derive(Deserialize, Debug)]
+#[frb(ignore)]
 pub struct LoginFirstStepResponse {
     pub success: bool,
     pub message: String,
@@ -20,12 +24,14 @@ pub struct LoginFirstStepResponse {
 
 // === Login Last Step ===
 #[derive(Serialize)]
+#[frb(ignore)]
 pub struct LoginLastStepRequest<'a> {
     pub phone: &'a str,
     pub code: &'a str,
 }
 
 #[derive(Deserialize, Debug)]
+#[frb(ignore)]
 pub struct LoginLastStepResponse {
     pub success: bool,
     pub message: Option<String>,
@@ -36,6 +42,7 @@ pub struct LoginLastStepResponse {
 
 // === User and nested structs ===
 #[derive(Deserialize, Debug)]
+#[frb(ignore)]
 pub struct User {
     pub id: i64,
     pub first_name: String,
@@ -57,6 +64,7 @@ pub struct User {
 }
 
 #[derive(Deserialize, Debug)]
+#[frb(ignore)]
 pub struct Approvals {
     pub marketing_sms: i32,
     pub marketing_mail: i32,
@@ -67,6 +75,7 @@ pub struct Approvals {
 
 // === Transactions (Receipts) ===
 #[derive(Deserialize, Debug)]
+#[frb(ignore)]
 pub struct PagedTransactions {
     pub data: Vec<Transaction>,
     pub links: Links,
@@ -74,6 +83,7 @@ pub struct PagedTransactions {
 }
 
 #[derive(Deserialize, Debug, Clone)]
+#[frb(ignore)]
 pub struct Transaction {
     pub transaction_id: i64,
     pub card_nr: i64,
@@ -88,6 +98,7 @@ pub struct Transaction {
 }
 
 impl Transaction {
+    #[frb(ignore)]
     pub fn with_details(&self, details: TransactionDetails) -> TransactionWithDetails {
         TransactionWithDetails {
             transaction_id: self.transaction_id,
@@ -107,6 +118,7 @@ impl Transaction {
 }
 
 #[derive(Deserialize, Debug, Clone)]
+#[frb(ignore)]
 pub struct Shop {
     pub id: i64,
     pub name: String,
@@ -123,10 +135,11 @@ pub struct Shop {
     pub lat: String,
     pub long: String,
     pub opening_hours: Option<OpeningHours>,
-    pub regional_company: RegionalCompany,
+    pub regional_company: Option<RegionalCompany>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
+#[frb(ignore)]
 pub struct OpeningHours {
     pub saturday: String,
     pub weekdays: String,
@@ -134,12 +147,14 @@ pub struct OpeningHours {
 }
 
 #[derive(Deserialize, Debug, Clone)]
+#[frb(ignore)]
 pub struct RegionalCompany {
     pub id: i64,
     pub name: String,
 }
 
 #[derive(Debug, Clone)]
+#[frb(ignore)]
 pub struct TransactionWithDetails {
     pub transaction_id: i64,
     pub receipt_id: String,
@@ -156,6 +171,7 @@ pub struct TransactionWithDetails {
 }
 
 #[derive(Deserialize, Debug)]
+#[frb(ignore)]
 pub struct Links {
     pub first: Option<String>,
     pub last: Option<String>,
@@ -164,6 +180,7 @@ pub struct Links {
 }
 
 #[derive(Deserialize, Debug)]
+#[frb(ignore)]
 pub struct Meta {
     pub current_page: i64,
     pub from: Option<i64>,
@@ -176,6 +193,7 @@ pub struct Meta {
 
 // === Transaction Details ===
 #[derive(Deserialize, Debug)]
+#[frb(ignore)]
 pub struct TransactionDetails {
     pub receipt_id: String,
     pub details: Vec<TransactionDetailItem>,
@@ -183,6 +201,7 @@ pub struct TransactionDetails {
 }
 
 #[derive(Deserialize, Debug, Clone)]
+#[frb(ignore)]
 pub struct TransactionDetailItem {
     pub id: i64,
     pub name: String,
@@ -192,12 +211,14 @@ pub struct TransactionDetailItem {
 
 // === User Profile (/auth/edit) ===
 #[derive(Deserialize, Debug)]
+#[frb(ignore)]
 pub struct UserProfileData {
     pub data: UserProfile,
 }
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+#[frb(ignore)]
 pub struct UserProfile {
     pub id: i64,
     pub first_name: String,
@@ -209,12 +230,14 @@ pub struct UserProfile {
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+#[frb(ignore)]
 pub struct ApiCard {
     pub number: i64,
     pub enabled: bool,
 }
 
 #[derive(serde::Deserialize, Debug)]
+#[frb(ignore)]
 pub struct VerifyTokenResponse {
     pub success: bool,
     pub token: String,
@@ -223,6 +246,7 @@ pub struct VerifyTokenResponse {
 }
 
 #[derive(serde::Deserialize, Debug)]
+#[frb(ignore)]
 pub struct ErrorResponse {
     pub message: String,
 }

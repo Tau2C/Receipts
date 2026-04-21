@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:receipts/src/rust/api/receipts.dart'; // Import the new Rust bindings
+import 'package:receipts/pages/item_history_page.dart';
+import 'package:receipts/src/rust/api/receipts.dart';
 
 class ReceiptDetailPage extends StatefulWidget {
-  final Receipt receipt; // Changed from ManualReceipt
+  final Receipt receipt;
 
   const ReceiptDetailPage({super.key, required this.receipt});
 
@@ -12,7 +13,7 @@ class ReceiptDetailPage extends StatefulWidget {
 }
 
 class _ReceiptDetailPageState extends State<ReceiptDetailPage> {
-  late Receipt _receipt; // Changed from ManualReceipt
+  late Receipt _receipt;
 
   @override
   void initState() {
@@ -37,10 +38,7 @@ class _ReceiptDetailPageState extends State<ReceiptDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              storeName, // Use the extracted string
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            Text(storeName, style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 8),
             Text(
               DateFormat('yyyy-MM-dd HH:mm').format(_receipt.issuedAt),
@@ -59,23 +57,52 @@ class _ReceiptDetailPageState extends State<ReceiptDetailPage> {
                 itemCount: _receipt.items.length,
                 itemBuilder: (context, index) {
                   final item = _receipt.items[index];
+                  // Check if EAN is populated
+                  // Adjust property name 'ean' if it differs in your Rust schema
+                  final hasEan = item.ean != null && item.ean!.isNotEmpty;
+
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.name,
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                          Text('Price: ${item.price.toStringAsFixed(2)} zł'),
-                          Text('Count: ${item.count}'),
-                          Text(
-                            'Item Total: ${item.total.toStringAsFixed(2)} zł',
-                          ),
-                        ],
+                    child: InkWell(
+                      onTap: hasEan
+                          ? () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ItemHistoryPage(
+                                    ean: item.ean!,
+                                    itemName: item.name,
+                                  ),
+                                ),
+                              );
+                            }
+                          : null, // null disables the tap effect if no EAN
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.name,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            Text('Price: ${item.price.toStringAsFixed(2)} zł'),
+                            Text('Count: ${item.count}'),
+                            Text(
+                              'Item Total: ${item.total.toStringAsFixed(2)} zł',
+                            ),
+                            if (hasEan) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                'EAN: ${item.ean}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
                     ),
                   );
