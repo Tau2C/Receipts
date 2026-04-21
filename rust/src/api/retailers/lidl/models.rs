@@ -71,6 +71,13 @@ pub struct Ticket {
     details: TicketDetails,
 }
 
+impl Ticket {
+    #[frb(sync)]
+    pub fn new(summary: TicketPageTicket, details: TicketDetails) -> Self {
+        Self { summary, details }
+    }
+}
+
 impl TryFrom<Ticket> for receipts::Receipt {
     type Error = anyhow::Error;
 

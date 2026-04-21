@@ -3,6 +3,7 @@ pub mod models;
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use flutter_rust_bridge::frb;
+use log::debug;
 use openidconnect::{
     core::{CoreAuthenticationFlow, CoreClient, CoreProviderMetadata},
     AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce, OAuth2TokenResponse,
@@ -16,7 +17,7 @@ use crate::api::{
     receipts,
     retailers::{
         biedronka::AuthUrl,
-        lidl::models::{Ticket, TicketsPage},
+        lidl::models::{Ticket, TicketDetails, TicketPageTicket, TicketsPage},
         FetchError,
     },
 };
@@ -269,15 +270,62 @@ impl LidlClient {
     }
 
     #[frb(ignore)]
-    pub async fn ticket(&mut self, id: &str) -> Result<Ticket> {
-        log::debug!("Lidl::transaction, id: {}", id);
-        todo!()
+    pub async fn ticket(&mut self, ticket: TicketPageTicket) -> Result<Ticket> {
+        log::debug!("Lidl::transaction, id: {}", &ticket.id);
+        let token = self.check_access_token().await?;
+
+        let url = format!(
+            "https://tickets.lidlplus.com/api/v3/{}/tickets/{}",
+            Self::COUNTRY,
+            &ticket.id
+        );
+
+        let response = self.http_client.get(url).bearer_auth(token).send().await?;
+
+        if !response.status().is_success() {
+            return Err(anyhow::anyhow!(
+                "Failed to fetch TicketDetails: {}",
+                response.status()
+            ));
+        }
+
+        let ticket_details_result = response.json::<TicketDetails>().await;
+        let ticket_details = match ticket_details_result {
+            Ok(details) => details,
+            Err(e) => {
+                log::error!("Failed to parse TicketDetails JSON: {:?}", e);
+                return Err(e.into());
+            }
+        };
+
+        Ok(Ticket::new(ticket, ticket_details))
     }
 
     #[frb(ignore)]
     pub async fn fetch_all_tickets(&mut self, date: DateTime<Utc>) -> Result<Vec<Ticket>> {
         log::debug!("Lidl::fetch_all_transactions, date: {}", date);
-        todo!()
+        let mut receipts = Vec::new();
+        let mut page = 1;
+        'main: loop {
+            let paged_transactions = self.tickets(page).await?;
+
+            for tx in paged_transactions.tickets {
+                if date > DateTime::parse_from_rfc3339(&tx.date).unwrap().to_utc() {
+                    break 'main;
+                }
+                debug!("Processing transaction: {}", tx.id);
+                let transaction = self.ticket(tx).await?;
+                receipts.push(transaction);
+            }
+
+            page += 1;
+            if paged_transactions.page as u32 * paged_transactions.size as u32
+                > paged_transactions.total_count
+            {
+                break;
+            }
+        }
+        Ok(receipts)
     }
 
     #[frb(sync)]
