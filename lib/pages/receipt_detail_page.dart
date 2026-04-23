@@ -41,7 +41,9 @@ class _ReceiptDetailPageState extends State<ReceiptDetailPage> {
             Text(storeName, style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 8),
             Text(
-              DateFormat('yyyy-MM-dd HH:mm').format(_receipt.issuedAt),
+              DateFormat(
+                'yyyy-MM-dd HH:mm',
+              ).format(_receipt.issuedAt.toLocal()),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),

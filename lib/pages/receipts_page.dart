@@ -133,7 +133,9 @@ class _ReceiptsPageState extends State<ReceiptsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      DateFormat('dd MMM yyyy HH:mm').format(receipt.issuedAt),
+                      DateFormat(
+                        'dd MMM yyyy HH:mm',
+                      ).format(receipt.issuedAt.toLocal()),
                     ),
                     if (retailerId != null && retailerId.isNotEmpty)
                       Text(
