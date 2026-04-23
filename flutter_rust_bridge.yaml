@@ -1,6 +1,7 @@
 rust_input: crate::api
 rust_root: rust/
 dart_output: lib/src/rust
+enable_lifetime: true
 rust_preamble: |
   use rust_decimal::Decimal;
   use reqwest::Url;
