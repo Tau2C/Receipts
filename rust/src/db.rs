@@ -352,7 +352,7 @@ pub async fn get_item(pool: &SqlitePool, ean: &str) -> Result<Vec<ReceiptItemSum
     let items = sqlx::query!(
         r#"
         SELECT ri.ean, ri.name, ri.price, ri.count, ri.total, ri.tax_group, ri.tax_rate, r.issued_at, r.store_type, r.store_value
-        FROM receipt_items ri JOIN receipts r ON r.id = ri.receipt_id WHERE ean = ?
+        FROM receipt_items ri JOIN receipts r ON r.id = ri.receipt_id WHERE ean = ? ORDER BY r.issued_at DESC
         "#,
         ean
     )
