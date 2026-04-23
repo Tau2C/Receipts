@@ -75,20 +75,11 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {});
   }
 
-  void _fetchReceipts(String retailer) async {
+  Future<String?> _fetchReceipts(String retailer, DatabaseService db) async {
     final client = _retailerManager.getClient(retailer);
     if (client == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Not logged in.')));
-      return;
+      return 'Not logged in.';
     }
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Fetching receipts...')));
-
-    final db = context.read<DatabaseService>();
 
     try {
       final lastFetch = client.lastFetch;
@@ -122,17 +113,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
       await db.insertReceipts(receipts: receipts);
 
-      if (!mounted) return; // Guard the async gap
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Fetched and saved ${receipts.length} receipts.'),
-        ),
-      );
+      return 'Fetched and saved ${receipts.length} receipts.';
     } catch (e) {
-      if (!mounted) return; // Guard the async gap
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to fetch receipts: $e')));
+      return 'Failed to fetch receipts: $e';
     }
   }
 
@@ -193,7 +176,24 @@ class _SettingsPageState extends State<SettingsPage> {
                         ListTile(
                           leading: const Icon(Icons.receipt_long),
                           title: const Text('Fetch Receipts'),
-                          onTap: () => _fetchReceipts('biedronka'),
+                          onTap: () async {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Fetching receipts...'),
+                              ),
+                            );
+                            final db = context.read<DatabaseService>();
+                            final message = await _fetchReceipts(
+                              'biedronka',
+                              db,
+                            );
+                            if (!mounted) return;
+                            if (message != null) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(SnackBar(content: Text(message)));
+                            }
+                          },
                         ),
                         const Divider(height: 1),
                         ListTile(
@@ -252,7 +252,21 @@ class _SettingsPageState extends State<SettingsPage> {
                         ListTile(
                           leading: const Icon(Icons.receipt_long),
                           title: const Text('Fetch Receipts'),
-                          onTap: () => _fetchReceipts('lidl'),
+                          onTap: () async {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Fetching receipts...'),
+                              ),
+                            );
+                            final db = context.read<DatabaseService>();
+                            final message = await _fetchReceipts('lidl', db);
+                            if (!mounted) return;
+                            if (message != null) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(SnackBar(content: Text(message)));
+                            }
+                          },
                         ),
                         const Divider(height: 1),
                         ListTile(
@@ -311,7 +325,21 @@ class _SettingsPageState extends State<SettingsPage> {
                         ListTile(
                           leading: const Icon(Icons.receipt_long),
                           title: const Text('Fetch Receipts'),
-                          onTap: () => _fetchReceipts('spolem'),
+                          onTap: () async {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Fetching receipts...'),
+                              ),
+                            );
+                            final db = context.read<DatabaseService>();
+                            final message = await _fetchReceipts('spolem', db);
+                            if (!mounted) return;
+                            if (message != null) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(SnackBar(content: Text(message)));
+                            }
+                          },
                         ),
                         const Divider(height: 1),
                         ListTile(

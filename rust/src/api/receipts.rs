@@ -42,10 +42,10 @@ impl Receipt {
             store,
             issued_at,
             items,
-            total: Centi::new((total * 100.0) as u32),
+            total: Centi::new((total * 100.0).round() as u32),
             discounts,
             tax_summary,
-            tax_total: Centi::new((tax_total * 100.0) as u32),
+            tax_total: Centi::new((tax_total * 100.0).round() as u32),
             payments,
         }
     }
@@ -190,7 +190,7 @@ impl ReceiptItemSummary {
 pub struct ReceiptItem {
     ean: Option<String>,
     name: String,
-    price: Centi<u16>,
+    price: Centi<u32>,
     count: Milli<u32>,
     discounts: Vec<ReceiptItemDiscount>,
     total: Centi<u32>,
@@ -214,12 +214,12 @@ impl ReceiptItem {
         Self {
             ean,
             name,
-            price: Centi::new((price * 100.0) as u16),
-            count: Milli::new((count * 1000.0) as u32),
+            price: Centi::new((price * 100.0).round() as u32),
+            count: Milli::new((count * 1000.0).round() as u32),
             discounts,
-            total: Centi::new((total * 100.0) as u32),
+            total: Centi::new((total * 100.0).round() as u32),
             tax_group,
-            tax_rate: tax_rate.map(|f| Centi::new((f * 100.0) as u16)),
+            tax_rate: tax_rate.map(|f| Centi::new((f * 100.0).round() as u16)),
         }
     }
 
@@ -288,33 +288,33 @@ impl ReceiptItem {
 }
 
 #[derive(Debug, Clone)]
-pub struct ReceiptItemDiscount {}
-
-impl ReceiptItemDiscount {
-    #[frb(sync)]
-    pub fn new() -> Self {
-        log::debug!("ReceiptItemDiscount::new called");
-        Self {}
-    }
+pub enum ReceiptItemDiscount {
+    Value(f32),
+    Percent(f32),
 }
 
 #[derive(Debug, Clone)]
 pub struct ReceiptTaxSummary {
     tax_group: Option<String>,
     tax_rate: Centi<u16>,
-    sales_value: Centi<u16>,
-    tax_value: Centi<u16>,
+    sales_value: Centi<u32>,
+    tax_value: Centi<u32>,
 }
 
 impl ReceiptTaxSummary {
     #[frb(sync)]
-    pub fn new(tax_group: Option<String>, tax_rate: f32, sales_value: f32, tax_value: f32) -> Self {
+    pub fn new(
+        tax_group: Option<String>,
+        tax_rate: f32,
+        value_brutto: f32,
+        tax_value: f32,
+    ) -> Self {
         log::debug!("ReceiptTaxSummary::new called for group: {:?}", tax_group);
         Self {
             tax_group,
-            tax_rate: Centi::new((tax_rate * 100.0) as u16),
-            sales_value: Centi::new((sales_value * 100.0) as u16),
-            tax_value: Centi::new((tax_value * 100.0) as u16),
+            tax_rate: Centi::new((tax_rate * 100.0).round() as u16),
+            sales_value: Centi::new((value_brutto * 100.0).round() as u32),
+            tax_value: Centi::new((tax_value * 100.0).round() as u32),
         }
     }
 
@@ -359,7 +359,7 @@ impl ReceiptPayment {
         log::debug!("ReceiptPayment::new called for type: {:?}", payment_type);
         Self {
             payment_type,
-            value: Centi::new((value * 100.0) as u32),
+            value: Centi::new((value * 100.0).round() as u32),
         }
     }
 
@@ -367,7 +367,7 @@ impl ReceiptPayment {
     #[inline]
     pub fn payment_type(&self) -> ReceiptPaymentType {
         log::debug!("ReceiptPayment::payment_type getter called");
-        self.payment_type
+        self.payment_type.clone()
     }
 
     #[frb(sync, getter)]
@@ -378,10 +378,12 @@ impl ReceiptPayment {
     }
 }
 
-#[derive(Debug, Clone, Copy, EnumString, IntoStaticStr)]
+#[derive(Debug, Clone, EnumString, IntoStaticStr)]
 pub enum ReceiptPaymentType {
     Cash,
     Card,
     Voucher,
+    ReturnBottleVoucher,
     StoreCredit,
+    Other(String),
 }

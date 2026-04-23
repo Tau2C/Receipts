@@ -1,9 +1,12 @@
 use chrono::DateTime;
 use fix::aliases::si::Centi;
 use flutter_rust_bridge::frb;
+use rust_decimal::prelude::Zero;
 use serde::Deserialize;
 
-use crate::api::receipts;
+use crate::api::receipts::{
+    self, ReceiptItemDiscount, ReceiptPayment, ReceiptPaymentType, ReceiptTaxSummary,
+};
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
@@ -85,7 +88,11 @@ impl From<Receipt> for receipts::Receipt {
                         i.name,
                         i.unit_price,
                         i.quantity,
-                        Vec::new(),
+                        if i.total_discount.is_zero() {
+                            Vec::new()
+                        } else {
+                            vec![ReceiptItemDiscount::Value(i.total_discount)]
+                        },
                         i.total_price,
                         Some(i.vat_fiscal_code),
                         Some(i.vat_rate as f32 / 100.0),
@@ -94,9 +101,38 @@ impl From<Receipt> for receipts::Receipt {
                 .collect(),
             total: Centi::new((value.total_price * 100.0) as u32),
             discounts: Vec::new(),
-            tax_summary: Vec::new(),
+            tax_summary: value
+                .tax_summaries
+                .into_iter()
+                .map(|t| {
+                    ReceiptTaxSummary::new(
+                        Some(t.vat_fiscal_code),
+                        (t.vat_rate as f32) / 100.0,
+                        t.sale_value + t.tax_value,
+                        t.tax_value,
+                    )
+                })
+                .collect(),
             tax_total: Centi::new((value.total_tax * 100.0) as u32),
-            payments: Vec::new(),
+            payments: value
+                .payments
+                .into_iter()
+                .map(|p| {
+                    let payment_type = match p.payment_type.as_str() {
+                        "Card" => ReceiptPaymentType::Card,
+                        "DiscountVoucher" => {
+                            if p.name.contains("zwrot opak (PET/CAN)") {
+                                ReceiptPaymentType::ReturnBottleVoucher
+                            } else {
+                                ReceiptPaymentType::Voucher
+                            }
+                        }
+                        "Cash" => ReceiptPaymentType::Cash,
+                        _ => ReceiptPaymentType::Other(p.name),
+                    };
+                    ReceiptPayment::new(payment_type, p.value)
+                })
+                .collect(),
         }
     }
 }

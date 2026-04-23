@@ -87,19 +87,13 @@ impl DatabaseService {
     #[frb(getter)]
     pub async fn get_receipts(&mut self) -> Result<Vec<Receipt>> {
         log::debug!("Fetching all receipts (checking cache)");
-        if self.receipts_cache.is_none() {
-            let t = db::get_receipts(&self.pool).await.map_err(|e| e.into());
-            match t {
-                Ok(t) => {
-                    self.receipts_cache = Some(t.clone());
-                    Ok(t)
-                }
-                Err(e) => Err(e),
-            }
-        } else {
-            let t = self.receipts_cache.clone();
-            Ok(t.unwrap())
+        if let Some(cached_receipts) = &self.receipts_cache {
+            return Ok(cached_receipts.clone());
         }
+
+        let receipts = db::get_receipts(&self.pool).await?;
+        self.receipts_cache = Some(receipts.clone());
+        Ok(receipts)
     }
 
     pub async fn insert_receipt(&mut self, receipt: Receipt) -> Result<Receipt> {

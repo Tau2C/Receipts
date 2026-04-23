@@ -7,7 +7,7 @@ use crate::api::{
 use chrono::{DateTime, Utc};
 use futures::StreamExt;
 use sqlx::{Result, SqlitePool};
-use std::{panic, str::FromStr};
+use std::str::FromStr;
 
 pub async fn run_migrations(pool: &SqlitePool) -> Result<()> {
     log::debug!("Running database migrations");
@@ -110,9 +110,16 @@ pub async fn get_receipts(pool: &SqlitePool) -> Result<Vec<Receipt>> {
 
     // Use buffer_ordered to maintain the 'ORDER BY issued_at DESC'
     // while processing sub-queries concurrently.
-    let receipts: Vec<Receipt> = futures::stream::iter(records.into_iter())
+    let receipts = futures::stream::iter(records.into_iter())
         .map(|record| async move {
             let id = record.id as i64;
+            let issued_at = match DateTime::parse_from_rfc3339(&record.issued_at) {
+                Ok(date) => date.to_utc(),
+                Err(e) => {
+                    log::error!("Date parse error for receipt {}: {}", id, e);
+                    return None;
+                }
+            };
 
             let items = match sqlx::query!(
                 r#"
@@ -148,7 +155,7 @@ pub async fn get_receipts(pool: &SqlitePool) -> Result<Vec<Receipt>> {
                 }
             };
 
-            Receipt::new(
+            Some(Receipt::new(
                 Some(record.id as u32),
                 if record.store_type.is_some() && record.store_value.is_some() {
                     unsafe {
@@ -160,12 +167,7 @@ pub async fn get_receipts(pool: &SqlitePool) -> Result<Vec<Receipt>> {
                 } else {
                     ReceiptStore::Other("".to_string())
                 },
-                DateTime::parse_from_rfc3339(&record.issued_at)
-                    .unwrap_or_else(|_| {
-                        log::error!("Date parse error for receipt {}", id);
-                        panic!("Date parse error for receipt {}", id);
-                    })
-                    .to_utc(),
+                issued_at,
                 items
                     .into_iter()
                     .map(|i| {
@@ -195,13 +197,13 @@ pub async fn get_receipts(pool: &SqlitePool) -> Result<Vec<Receipt>> {
                         )
                     })
                     .collect(),
-            )
+            ))
         })
         .buffered(20)
-        .collect()
+        .collect::<Vec<_>>()
         .await;
 
-    Ok(receipts)
+    Ok(receipts.into_iter().filter_map(|r| r).collect())
 }
 
 pub async fn insert_receipt(pool: &SqlitePool, mut receipt: Receipt) -> Result<Receipt> {
@@ -363,8 +365,20 @@ pub async fn get_item(pool: &SqlitePool, ean: &str) -> Result<Vec<ReceiptItemSum
 
     Ok(items
         .into_iter()
-        .map(|i| {
-            ReceiptItemSummary::new(
+        .filter_map(|i| {
+            let issued_at = match DateTime::parse_from_rfc3339(&i.issued_at) {
+                Ok(dt) => dt.to_utc(),
+                Err(e) => {
+                    log::error!(
+                        "Failed to parse issued_at '{}' for ean '{}': {}",
+                        i.issued_at,
+                        i.ean.as_deref().unwrap_or_default(),
+                        e
+                    );
+                    return None;
+                }
+            };
+            Some(ReceiptItemSummary::new(
                 ReceiptItem::new(
                     i.ean,
                     i.name,
@@ -375,7 +389,7 @@ pub async fn get_item(pool: &SqlitePool, ean: &str) -> Result<Vec<ReceiptItemSum
                     i.tax_group,
                     i.tax_rate.map(|f| f as f32),
                 ),
-                DateTime::parse_from_rfc3339(&i.issued_at).unwrap().to_utc(),
+                issued_at,
                 if i.store_type.is_some() && i.store_value.is_some() {
                     unsafe {
                         ReceiptStore::from_parts(&i.store_type.unwrap(), i.store_value.unwrap())
@@ -383,7 +397,7 @@ pub async fn get_item(pool: &SqlitePool, ean: &str) -> Result<Vec<ReceiptItemSum
                 } else {
                     ReceiptStore::Other("".to_string())
                 },
-            )
+            ))
         })
         .collect())
 }

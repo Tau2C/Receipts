@@ -3,7 +3,7 @@ pub mod models;
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use flutter_rust_bridge::frb;
-use log::debug;
+use log::{debug, error, trace};
 use openidconnect::{
     core::{CoreAuthenticationFlow, CoreClient, CoreProviderMetadata},
     AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce, OAuth2TokenResponse,
@@ -133,12 +133,16 @@ impl LidlClient {
 
         let pkce_verifier = PkceCodeVerifier::new(pkce_verifier_secret);
 
-        let token_response = client
-            .exchange_code(AuthorizationCode::new(code))
-            .unwrap()
-            .set_pkce_verifier(pkce_verifier)
-            .request_async(&self.http_client)
-            .await?;
+        let token_response = match client.exchange_code(AuthorizationCode::new(code)) {
+            Ok(builder) => builder,
+            Err(e) => {
+                error!("Failed to prepare token exchange request: {}", e);
+                return Err(e.into());
+            }
+        }
+        .set_pkce_verifier(pkce_verifier)
+        .request_async(&self.http_client)
+        .await?;
 
         self.access_token = Some(token_response.access_token().secret().to_string());
         self.refresh_token = token_response
@@ -168,11 +172,17 @@ impl LidlClient {
         )
         .set_redirect_uri(RedirectUrl::new(Self::CALLBACK_URL.to_string())?);
 
-        let token_response = client
+        let token_response = match client
             .exchange_refresh_token(&openidconnect::RefreshToken::new(refresh_token.to_string()))
-            .unwrap()
-            .request_async(&self.http_client)
-            .await?;
+        {
+            Ok(builder) => builder,
+            Err(e) => {
+                error!("Failed to prepare token refresh request: {}", e);
+                return Err(e.into());
+            }
+        }
+        .request_async(&self.http_client)
+        .await?;
 
         self.access_token = Some(token_response.access_token().secret().to_string());
         if let Some(rt) = token_response.refresh_token() {
@@ -212,7 +222,7 @@ impl LidlClient {
             registration_date: String,
             #[serde(rename = "registrationDate")]
             registration_date1: String,
-            sid: String,
+            sid: Option<String>,
             iat: i64,
             scope: serde_json::Value,
             amr: serde_json::Value,
@@ -222,8 +232,9 @@ impl LidlClient {
             let claims = match jsonwebtoken::dangerous::insecure_decode::<Claims>(token) {
                 Ok(c) => c,
                 Err(e) => {
-                    log::error!("Failed to decode JWT token claims: {:?}", e);
-                    return Err(e.into());
+                    let msg = format!("Failed to decode JWT token claims: {:?}", e);
+                    error!("{}", msg);
+                    return Err(anyhow::anyhow!(msg));
                 }
             };
             if claims.claims.exp > Utc::now().timestamp() {
@@ -233,7 +244,14 @@ impl LidlClient {
 
         if self.refresh_token.is_some() {
             self.refresh_token().await?;
-            Ok(self.access_token.clone().unwrap())
+            match self.access_token.as_ref() {
+                Some(access_token) => Ok(access_token.clone()),
+                None => {
+                    let msg = format!("Failed to get refreshed access token");
+                    error!("{}", msg);
+                    return Err(anyhow::anyhow!(msg));
+                }
+            }
         } else {
             Err(anyhow::anyhow!("Not logged in"))
         }
@@ -271,32 +289,61 @@ impl LidlClient {
 
     #[frb(ignore)]
     pub async fn ticket(&mut self, ticket: TicketPageTicket) -> Result<Ticket> {
-        log::debug!("Lidl::transaction, id: {}", &ticket.id);
+        debug!("Lidl::ticket started for id: {}", &ticket.id);
         let token = self.check_access_token().await?;
+        trace!("Lidl::ticket obtained access token");
 
         let url = format!(
             "https://tickets.lidlplus.com/api/v3/{}/tickets/{}",
             Self::COUNTRY,
             &ticket.id
         );
+        trace!("Lidl::ticket constructed URL: {}", url);
 
-        let response = self.http_client.get(url).bearer_auth(token).send().await?;
+        let response = self
+            .http_client
+            .get(url)
+            .header("Accept-Language", Self::COUNTRY)
+            .bearer_auth(token)
+            .send()
+            .await;
+        trace!("Lidl::ticket received HTTP response");
+
+        let response = match response {
+            Ok(r) => r,
+            Err(e) => {
+                let msg = format!(
+                    "Failed to get response for ticket id: {} : {}",
+                    &ticket.id, e
+                );
+                error!("{}", msg);
+                trace!("Lidl::ticket encountered error in HTTP response: {}", e);
+                return Err(anyhow::anyhow!(msg));
+            }
+        };
+        trace!("Lidl::ticket response status: {}", response.status());
 
         if !response.status().is_success() {
-            return Err(anyhow::anyhow!(
-                "Failed to fetch TicketDetails: {}",
-                response.status()
-            ));
+            let msg = format!("Failed to fetch TicketDetails: {}", response.status());
+            error!("{}", msg);
+            trace!("Lidl::ticket non-success status: {}", response.status());
+            return Err(anyhow::anyhow!(msg));
         }
 
         let ticket_details_result = response.json::<TicketDetails>().await;
+        trace!("Lidl::ticket parsed ticket details result");
         let ticket_details = match ticket_details_result {
             Ok(details) => details,
             Err(e) => {
                 log::error!("Failed to parse TicketDetails JSON: {:?}", e);
+                trace!(
+                    "Lidl::ticket encountered error parsing TicketDetails JSON: {}",
+                    e
+                );
                 return Err(e.into());
             }
         };
+        trace!("Lidl::ticket successfully obtained ticket details");
 
         Ok(Ticket::new(ticket, ticket_details))
     }
@@ -306,22 +353,42 @@ impl LidlClient {
         log::debug!("Lidl::fetch_all_transactions, date: {}", date);
         let mut receipts = Vec::new();
         let mut page = 1;
+
         'main: loop {
             let paged_transactions = self.tickets(page).await?;
 
             for tx in paged_transactions.tickets {
-                if date > DateTime::parse_from_rfc3339(&tx.date).unwrap().to_utc() {
+                let tx_date = match DateTime::parse_from_rfc3339(&tx.date) {
+                    Ok(date) => date,
+                    Err(e) => {
+                        error!("Error parsing date from receipt: '{}' : {}", &tx.date, e);
+                        return Err(e.into());
+                    }
+                };
+                if date > tx_date.to_utc() {
+                    trace!("receipts date break, got {}", receipts.len());
                     break 'main;
                 }
-                debug!("Processing transaction: {}", tx.id);
+
+                let id = tx.id.clone();
+                debug!("Processing transaction: {}", id);
                 let transaction = self.ticket(tx).await?;
+                trace!("Got ticket w ID {}", id);
                 receipts.push(transaction);
+                trace!("Added ticket({}) to vec", id);
+
+                trace!("receipts.len got = {}", receipts.len());
             }
 
             page += 1;
             if paged_transactions.page as u32 * paged_transactions.size as u32
                 > paged_transactions.total_count
             {
+                trace!(
+                    "receipts end break, got {} expected {}",
+                    receipts.len(),
+                    paged_transactions.total_count
+                );
                 break;
             }
         }
@@ -338,7 +405,7 @@ impl LidlClient {
 impl crate::api::retailers::ReceiptProvider for LidlClient {
     async fn fetch_receipts(&mut self) -> Result<Vec<receipts::Receipt>> {
         log::debug!("Lidl::fetch_receipts");
-        self.fetch_receipts_after(DateTime::from_timestamp_secs(0).unwrap())
+        self.fetch_receipts_after(DateTime::from(std::time::UNIX_EPOCH))
             .await
     }
 
@@ -347,12 +414,23 @@ impl crate::api::retailers::ReceiptProvider for LidlClient {
         date: DateTime<Utc>,
     ) -> Result<Vec<receipts::Receipt>> {
         log::debug!("Lidl::fetch_receipts_after, date: {}", date);
-        Ok(self
-            .fetch_all_tickets(date)
-            .await?
+        let tickets = match self.fetch_all_tickets(date).await {
+            Ok(tickets) => tickets,
+            Err(e) => {
+                let msg = format!("Lidl::fetch_receipts_after failed: {}", e);
+                error!("{}", msg);
+                return Err(anyhow::anyhow!(msg));
+            }
+        };
+
+        trace!("tickets.len got = {}", tickets.len());
+
+        let receipts = tickets
             .into_iter()
             .filter_map(|t| t.try_into().ok())
-            .collect())
+            .collect::<Vec<_>>();
+        trace!("receipts.len got = {}", receipts.len());
+        Ok(receipts)
     }
 
     #[frb(sync, getter)]
