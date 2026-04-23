@@ -387,3 +387,31 @@ pub enum ReceiptPaymentType {
     StoreCredit,
     Other(String),
 }
+
+impl ReceiptPaymentType {
+    #[frb(sync, getter)]
+    pub fn values() -> Vec<Self> {
+        vec![
+            Self::Card,
+            Self::Cash,
+            Self::Voucher,
+            Self::ReturnBottleVoucher,
+            Self::StoreCredit,
+            Self::Other(String::new()),
+        ]
+    }
+}
+
+impl ToString for ReceiptPaymentType {
+    #[frb(sync)]
+    fn to_string(&self) -> String {
+        match self {
+            Self::Cash => "Cash".to_string(),
+            Self::Card => "Card".to_string(),
+            Self::Voucher => "Voucher".to_string(),
+            Self::ReturnBottleVoucher => "Return Bottle Voucher".to_string(),
+            Self::StoreCredit => "Store Credit".to_string(),
+            Self::Other(_) => "Other".to_string(),
+        }
+    }
+}
