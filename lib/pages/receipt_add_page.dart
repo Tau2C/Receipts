@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:receipts/src/rust/api/database.dart';
 import 'package:receipts/src/rust/api/receipts.dart';
+import 'package:system_date_time_format/system_date_time_format.dart';
 
 class ReceiptAddPage extends StatefulWidget {
   const ReceiptAddPage({super.key});
@@ -37,7 +38,11 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
   @override
   void initState() {
     super.initState();
-    _dateController.text = DateFormat('yyyy-MM-dd HH:mm').format(_issuedAt);
+    final patterns = SystemDateTimeFormat.of(context);
+
+    _dateController.text = DateFormat(
+      "${patterns.datePattern} ${patterns.timePattern}",
+    ).format(_issuedAt);
   }
 
   @override
@@ -97,6 +102,8 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
 
     if (pickedTime == null) return;
 
+    final patterns = SystemDateTimeFormat.of(context);
+
     setState(() {
       _issuedAt = DateTime(
         pickedDate.year,
@@ -105,7 +112,9 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
         pickedTime.hour,
         pickedTime.minute,
       );
-      _dateController.text = DateFormat('yyyy-MM-dd HH:mm').format(_issuedAt);
+      _dateController.text = DateFormat(
+        "${patterns.datePattern} ${patterns.timePattern}",
+      ).format(_issuedAt);
     });
   }
 

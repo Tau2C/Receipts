@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:receipts/pages/item_history_page.dart';
 import 'package:receipts/src/rust/api/receipts.dart';
+import 'package:system_date_time_format/system_date_time_format.dart';
 
 class ReceiptDetailPage extends StatefulWidget {
   final Receipt receipt;
@@ -31,6 +32,8 @@ class _ReceiptDetailPageState extends State<ReceiptDetailPage> {
       spolem: (_) => 'Społem',
     );
 
+    final patterns = SystemDateTimeFormat.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Receipt Details')),
       body: Padding(
@@ -42,7 +45,7 @@ class _ReceiptDetailPageState extends State<ReceiptDetailPage> {
             const SizedBox(height: 8),
             Text(
               DateFormat(
-                'yyyy-MM-dd HH:mm',
+                "${patterns.datePattern} ${patterns.timePattern}",
               ).format(_receipt.issuedAt.toLocal()),
               style: Theme.of(context).textTheme.titleMedium,
             ),

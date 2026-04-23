@@ -8,6 +8,7 @@ import 'package:receipts/pages/home_page.dart';
 import 'package:receipts/retailer_manager.dart';
 import 'package:receipts/src/rust/api/database.dart';
 import 'package:receipts/src/rust/frb_generated.dart';
+import 'package:system_date_time_format/system_date_time_format.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,7 +46,7 @@ Future<void> main() async {
     runApp(
       MultiProvider(
         providers: [Provider<DatabaseService>.value(value: databaseService)],
-        child: const MyApp(),
+        child: const SDTFScope(child: MyApp()),
       ),
     );
   } catch (e) {

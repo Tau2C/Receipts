@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:receipts/src/rust/api/database.dart';
 import 'package:receipts/src/rust/api/receipts.dart';
+import 'package:system_date_time_format/system_date_time_format.dart';
 
 class ItemHistoryPage extends StatefulWidget {
   final String ean;
@@ -73,7 +74,9 @@ class _ItemHistoryPageState extends State<ItemHistoryPage> {
                 ),
                 subtitle: Text(storeName),
                 trailing: Text(
-                  DateFormat('yyyy-MM-dd').format(summary.date),
+                  DateFormat(
+                    SystemDateTimeFormat.of(context).datePattern,
+                  ).format(summary.date),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               );

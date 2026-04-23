@@ -5,6 +5,7 @@ import 'package:receipts/pages/receipt_add_page.dart';
 import 'package:receipts/pages/receipt_detail_page.dart';
 import 'package:receipts/src/rust/api/database.dart';
 import 'package:receipts/src/rust/api/receipts.dart';
+import 'package:system_date_time_format/system_date_time_format.dart';
 
 class ReceiptsPage extends StatefulWidget {
   const ReceiptsPage({super.key});
@@ -89,6 +90,8 @@ class _ReceiptsPageState extends State<ReceiptsPage> {
             spolem: (id) => id,
           );
 
+          final patterns = SystemDateTimeFormat.of(context);
+
           return Dismissible(
             key: ValueKey(receipt.id),
             direction: DismissDirection.endToStart,
@@ -134,7 +137,7 @@ class _ReceiptsPageState extends State<ReceiptsPage> {
                   children: [
                     Text(
                       DateFormat(
-                        'dd MMM yyyy HH:mm',
+                        "${patterns.datePattern} ${patterns.timePattern}",
                       ).format(receipt.issuedAt.toLocal()),
                     ),
                     if (retailerId != null && retailerId.isNotEmpty)
