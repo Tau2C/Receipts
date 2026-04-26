@@ -691,7 +691,6 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
               focusNode: _taxGroupFocus[index],
               decoration: const InputDecoration(labelText: 'Tax Group'),
               onChanged: (v) {
-                double? newRate;
                 _ReceiptTaxSummaryData? matchingSummary;
                 for (final summary in _taxSummary) {
                   if (summary.taxGroup?.toUpperCase() == v.toUpperCase()) {
@@ -787,7 +786,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
         Expanded(
           flex: 2,
           child: DropdownButtonFormField<ReceiptItemDiscount>(
-            value: discount.type,
+            initialValue: discount.type,
             items: [
               DropdownMenuItem(
                 value: ReceiptItemDiscount.value(0),
@@ -1052,7 +1051,7 @@ class _ReceiptTaxSummaryData {
   ReceiptTaxSummary toApi() {
     return ReceiptTaxSummary(
       taxGroup: taxGroup,
-      taxRate: taxRate,
+      taxRate: taxRate / 100.0,
       valueBrutto: salesValue,
       taxValue: taxValue,
     );

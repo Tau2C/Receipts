@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM receipts WHERE store_type = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "02861a349281351886423f0af68bfc2e6c7f1b865eff13182e4e0345761edca4"
+}

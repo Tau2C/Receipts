@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO receipt_tax_summaries (receipt_id, tax_group, tax_rate, sales_value, tax_value)\n            VALUES (?, ?, ?, ?, ?)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "6b1f28e087fc765edbf1697117c0604ff9e468227eceeaf8732b10be8a55cc20"
+}

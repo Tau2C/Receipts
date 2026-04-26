@@ -1,11 +1,11 @@
 use crate::api::{
     card::Card,
     receipts::{
-        Receipt, ReceiptItem, ReceiptItemSummary, ReceiptPayment, ReceiptPaymentType, ReceiptStore,
+        Receipt, ReceiptItem, ReceiptItemDiscount, ReceiptItemSummary, ReceiptPayment,
+        ReceiptPaymentType, ReceiptStore, ReceiptTaxSummary,
     },
 };
 use chrono::{DateTime, Utc};
-use futures::StreamExt;
 use sqlx::{Result, SqlitePool};
 use std::str::FromStr;
 
@@ -108,102 +108,155 @@ pub async fn get_receipts(pool: &SqlitePool) -> Result<Vec<Receipt>> {
 
     log::debug!("Processing details for {} receipts", records.len());
 
-    // Use buffer_ordered to maintain the 'ORDER BY issued_at DESC'
-    // while processing sub-queries concurrently.
-    let receipts = futures::stream::iter(records.into_iter())
-        .map(|record| async move {
-            let id = record.id as i64;
-            let issued_at = match DateTime::parse_from_rfc3339(&record.issued_at) {
-                Ok(date) => date.to_utc(),
-                Err(e) => {
-                    log::error!("Date parse error for receipt {}: {}", id, e);
-                    return None;
-                }
-            };
+    let mut receipts = Vec::new();
+    for record in records {
+        let id = record.id as i64;
+        let issued_at = match DateTime::parse_from_rfc3339(&record.issued_at) {
+            Ok(date) => date.to_utc(),
+            Err(e) => {
+                log::error!("Date parse error for receipt {}: {}", id, e);
+                continue;
+            }
+        };
 
-            let items = match sqlx::query!(
-                r#"
-                SELECT ean, name, price, count, total, tax_group, tax_rate
-                FROM receipt_items WHERE receipt_id = ?
-                "#,
-                id
+        let item_records = match sqlx::query!(
+            r#"
+            SELECT id, ean, name, price, count, total, tax_group, tax_rate
+            FROM receipt_items WHERE receipt_id = ?
+            "#,
+            id
+        )
+        .fetch_all(pool)
+        .await
+        {
+            Ok(items) => items,
+            Err(e) => {
+                log::error!("Failed to fetch items for receipt {}: {:?}", id, e);
+                Vec::new()
+            }
+        };
+
+        let mut items = Vec::new();
+        for item_record in item_records {
+            let discounts = match sqlx::query!(
+                "SELECT type, value FROM receipt_item_discounts WHERE receipt_item_id = ?",
+                item_record.id
             )
             .fetch_all(pool)
             .await
             {
-                Ok(items) => items,
+                Ok(discounts) => discounts
+                    .into_iter()
+                    .map(|d| {
+                        if d.r#type == "value" {
+                            ReceiptItemDiscount::Value(d.value as f32)
+                        } else {
+                            ReceiptItemDiscount::Percent(d.value as f32)
+                        }
+                    })
+                    .collect(),
                 Err(e) => {
-                    log::error!("Failed to fetch items for receipt {}: {:?}", id, e);
+                    log::error!(
+                        "Failed to fetch discounts for item {}: {:?}",
+                        item_record.id,
+                        e
+                    );
                     Vec::new()
                 }
             };
 
-            let payments = match sqlx::query!(
-                r#"
-                SELECT payment_type, value
-                FROM receipt_payments WHERE receipt_id = ?
-                "#,
-                id
-            )
-            .fetch_all(pool)
-            .await
-            {
-                Ok(payments) => payments,
-                Err(e) => {
-                    log::error!("Failed to fetch payments for receipt {}: {:?}", id, e);
-                    Vec::new()
-                }
-            };
+            items.push(ReceiptItem::new(
+                item_record.ean,
+                item_record.name,
+                item_record.price as f32,
+                item_record.count as f32,
+                discounts,
+                item_record.total as f32,
+                item_record.tax_group,
+                item_record.tax_rate.map(|f| f as f32),
+            ));
+        }
 
-            Some(Receipt::new(
-                Some(record.id as u32),
-                if record.store_type.is_some() && record.store_value.is_some() {
+        let payments = match sqlx::query!(
+            r#"
+            SELECT payment_type, value
+            FROM receipt_payments WHERE receipt_id = ?
+            "#,
+            id
+        )
+        .fetch_all(pool)
+        .await
+        {
+            Ok(payments) => payments,
+            Err(e) => {
+                log::error!("Failed to fetch payments for receipt {}: {:?}", id, e);
+                Vec::new()
+            }
+        };
+
+        let tax_summaries = match sqlx::query!(
+            r#"
+            SELECT tax_group, tax_rate, sales_value, tax_value
+            FROM receipt_tax_summaries WHERE receipt_id = ?
+            "#,
+            id
+        )
+        .fetch_all(pool)
+        .await
+        {
+            Ok(summaries) => summaries,
+            Err(e) => {
+                log::error!("Failed to fetch tax summaries for receipt {}: {:?}", id, e);
+                Vec::new()
+            }
+        };
+
+        receipts.push(Receipt::new(
+            Some(record.id as u32),
+            if record.store_value.is_some() {
+                if record.store_type.is_some() {
                     unsafe {
                         ReceiptStore::from_parts(
-                            &record.store_type.unwrap(),
-                            record.store_value.unwrap(),
+                            &record.store_type.clone().unwrap(),
+                            record.store_value.clone().unwrap(),
                         )
                     }
                 } else {
-                    ReceiptStore::Other("".to_string())
-                },
-                issued_at,
-                items
-                    .into_iter()
-                    .map(|i| {
-                        ReceiptItem::new(
-                            i.ean,
-                            i.name,
-                            i.price as f32,
-                            i.count as f32,
-                            Vec::new(),
-                            i.total as f32,
-                            i.tax_group,
-                            i.tax_rate.map(|f| f as f32),
-                        )
-                    })
-                    .collect(),
-                record.total as f32,
-                Vec::new(),
-                Vec::new(),
-                record.tax_total.map(|f| f as f32).unwrap_or(0.0),
-                payments
-                    .iter()
-                    .map(|p| {
-                        ReceiptPayment::new(
-                            ReceiptPaymentType::from_str(&p.payment_type)
-                                .unwrap_or(ReceiptPaymentType::Cash),
-                            p.value as f32,
-                        )
-                    })
-                    .collect(),
-            ))
-        })
-        .buffered(20)
-        .collect::<Vec<_>>()
-        .await;
+                    ReceiptStore::Other(record.store_value.clone().unwrap())
+                }
+            } else {
+                ReceiptStore::Other("".to_string())
+            },
+            issued_at,
+            items,
+            record.total as f32,
+            Vec::new(), // Receipt-level discounts not implemented yet
+            tax_summaries
+                .into_iter()
+                .map(|s| {
+                    ReceiptTaxSummary::new(
+                        s.tax_group,
+                        s.tax_rate as f32,
+                        s.sales_value as f32,
+                        s.tax_value as f32,
+                    )
+                })
+                .collect(),
+            record.tax_total.map(|f| f as f32).unwrap_or(0.0),
+            payments
+                .iter()
+                .map(|p| {
+                    ReceiptPayment::new(
+                        ReceiptPaymentType::from_str(&p.payment_type)
+                            .unwrap_or(ReceiptPaymentType::Cash),
+                        p.value as f32,
+                    )
+                })
+                .collect(),
+        ));
+    }
 
-    Ok(receipts.into_iter().filter_map(|r| r).collect())
+    Ok(receipts)
 }
 
 pub async fn insert_receipt(pool: &SqlitePool, mut receipt: Receipt) -> Result<Receipt> {
@@ -254,17 +307,81 @@ pub async fn insert_receipt(pool: &SqlitePool, mut receipt: Receipt) -> Result<R
         let ean = item.get_ean();
         let name = item.get_name();
 
-        sqlx::query!(
+        let item_id = sqlx::query!(
             r#"
             INSERT INTO receipt_items (receipt_id, ean, name, price, count, total, tax_group, tax_rate)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             "#,
-            receipt_id, ean, name, price, count, item_total, tax_group, tax_rate
+            receipt_id,
+            ean,
+            name,
+            price,
+            count,
+            item_total,
+            tax_group,
+            tax_rate
         )
         .execute(&mut *tx)
         .await
         .map_err(|e| {
             log::error!("Failed to insert receipt item '{}': {:?}", name, e);
+            e
+        })?
+        .last_insert_rowid();
+
+        for discount in item.get_discounts() {
+            let (discount_type, value) = match discount {
+                crate::api::receipts::ReceiptItemDiscount::Value(v) => ("value", v),
+                crate::api::receipts::ReceiptItemDiscount::Percent(v) => ("percent", v),
+            };
+
+            sqlx::query!(
+                r#"
+                INSERT INTO receipt_item_discounts (receipt_item_id, type, value)
+                VALUES (?, ?, ?)
+                "#,
+                item_id,
+                discount_type,
+                value
+            )
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| {
+                log::error!(
+                    "Failed to insert receipt item discount for item {}: {:?}",
+                    item_id,
+                    e
+                );
+                e
+            })?;
+        }
+    }
+
+    for summary in receipt.tax_summary() {
+        let tax_group = summary.tax_group();
+        let tax_rate = summary.tax_rate() as f64;
+        let sales_value = summary.sales_value() as f64;
+        let tax_value = summary.tax_value() as f64;
+
+        sqlx::query!(
+            r#"
+            INSERT INTO receipt_tax_summaries (receipt_id, tax_group, tax_rate, sales_value, tax_value)
+            VALUES (?, ?, ?, ?, ?)
+            "#,
+            receipt_id,
+            tax_group,
+            tax_rate,
+            sales_value,
+            tax_value
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| {
+            log::error!(
+                "Failed to insert tax summary for receipt {}: {:?}",
+                receipt_id,
+                e
+            );
             e
         })?;
     }
@@ -351,7 +468,7 @@ pub async fn get_item(pool: &SqlitePool, ean: &str) -> Result<Vec<ReceiptItemSum
     log::debug!("Fetching items with ean: {}", ean);
     let items = sqlx::query!(
         r#"
-        SELECT ri.ean, ri.name, ri.price, ri.count, ri.total, ri.tax_group, ri.tax_rate, r.issued_at, r.store_type, r.store_value
+        SELECT ri.id, ri.ean, ri.name, ri.price, ri.count, ri.total, ri.tax_group, ri.tax_rate, r.issued_at, r.store_type, r.store_value
         FROM receipt_items ri JOIN receipts r ON r.id = ri.receipt_id WHERE ean = ? ORDER BY r.issued_at DESC
         "#,
         ean
@@ -363,43 +480,65 @@ pub async fn get_item(pool: &SqlitePool, ean: &str) -> Result<Vec<ReceiptItemSum
         e
     })?;
 
-    Ok(items
+    let mut item_summaries = Vec::new();
+
+    for i in items {
+        let issued_at = match DateTime::parse_from_rfc3339(&i.issued_at) {
+            Ok(dt) => dt.to_utc(),
+            Err(e) => {
+                log::error!(
+                    "Failed to parse issued_at '{}' for ean '{}': {}",
+                    i.issued_at,
+                    i.ean.as_deref().unwrap_or_default(),
+                    e
+                );
+                continue;
+            }
+        };
+
+        let discounts = sqlx::query!(
+            "SELECT type, value FROM receipt_item_discounts WHERE receipt_item_id = ?",
+            i.id
+        )
+        .fetch_all(pool)
+        .await
+        .unwrap_or_default()
         .into_iter()
-        .filter_map(|i| {
-            let issued_at = match DateTime::parse_from_rfc3339(&i.issued_at) {
-                Ok(dt) => dt.to_utc(),
-                Err(e) => {
-                    log::error!(
-                        "Failed to parse issued_at '{}' for ean '{}': {}",
-                        i.issued_at,
-                        i.ean.as_deref().unwrap_or_default(),
-                        e
-                    );
-                    return None;
-                }
-            };
-            Some(ReceiptItemSummary::new(
-                ReceiptItem::new(
-                    i.ean,
-                    i.name,
-                    i.price as f32,
-                    i.count as f32,
-                    Vec::new(),
-                    i.total as f32,
-                    i.tax_group,
-                    i.tax_rate.map(|f| f as f32),
-                ),
-                issued_at,
-                if i.store_type.is_some() && i.store_value.is_some() {
-                    unsafe {
-                        ReceiptStore::from_parts(&i.store_type.unwrap(), i.store_value.unwrap())
-                    }
-                } else {
-                    ReceiptStore::Other("".to_string())
-                },
-            ))
+        .map(|d| {
+            if d.r#type == "value" {
+                ReceiptItemDiscount::Value(d.value as f32)
+            } else {
+                ReceiptItemDiscount::Percent(d.value as f32)
+            }
         })
-        .collect())
+        .collect();
+
+        item_summaries.push(ReceiptItemSummary::new(
+            ReceiptItem::new(
+                i.ean,
+                i.name,
+                i.price as f32,
+                i.count as f32,
+                discounts,
+                i.total as f32,
+                i.tax_group,
+                i.tax_rate.map(|f| f as f32),
+            ),
+            issued_at,
+            if i.store_type.is_some() && i.store_value.is_some() {
+                unsafe {
+                    ReceiptStore::from_parts(
+                        &i.store_type.clone().unwrap(),
+                        i.store_value.clone().unwrap(),
+                    )
+                }
+            } else {
+                ReceiptStore::Other("".to_string())
+            },
+        ));
+    }
+
+    Ok(item_summaries)
 }
 
 #[derive(Debug)]

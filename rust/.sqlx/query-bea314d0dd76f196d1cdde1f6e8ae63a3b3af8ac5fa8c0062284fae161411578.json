@@ -1,0 +1,74 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT ri.ean, ri.name, ri.price, ri.count, ri.total, ri.tax_group, ri.tax_rate, r.issued_at, r.store_type, r.store_value\n        FROM receipt_items ri JOIN receipts r ON r.id = ri.receipt_id WHERE ean = ? ORDER BY r.issued_at DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "ean",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "price",
+        "ordinal": 2,
+        "type_info": "Float"
+      },
+      {
+        "name": "count",
+        "ordinal": 3,
+        "type_info": "Float"
+      },
+      {
+        "name": "total",
+        "ordinal": 4,
+        "type_info": "Float"
+      },
+      {
+        "name": "tax_group",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "tax_rate",
+        "ordinal": 6,
+        "type_info": "Float"
+      },
+      {
+        "name": "issued_at",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "store_type",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "store_value",
+        "ordinal": 9,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "bea314d0dd76f196d1cdde1f6e8ae63a3b3af8ac5fa8c0062284fae161411578"
+}
