@@ -83,8 +83,15 @@ impl From<Receipt> for receipts::Receipt {
                 .items
                 .into_iter()
                 .map(|i| {
+                    let (ean, id) = if i.ean.len() == 13 {
+                        (Some(i.ean), None)
+                    } else {
+                        (None, Some(i.ean))
+                    };
+
                     receipts::ReceiptItem::new(
-                        Some(i.ean),
+                        id,
+                        ean,
                         i.name,
                         i.unit_price,
                         i.quantity,

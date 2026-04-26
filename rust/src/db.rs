@@ -6,7 +6,7 @@ use crate::api::{
     },
 };
 use chrono::{DateTime, Utc};
-use sqlx::{Result, SqlitePool};
+use sqlx::{QueryBuilder, Result, Row, SqlitePool};
 use std::str::FromStr;
 
 pub async fn run_migrations(pool: &SqlitePool) -> Result<()> {
@@ -121,7 +121,7 @@ pub async fn get_receipts(pool: &SqlitePool) -> Result<Vec<Receipt>> {
 
         let item_records = match sqlx::query!(
             r#"
-            SELECT id, ean, name, price, count, total, tax_group, tax_rate
+            SELECT id, item_id, ean, name, price, count, total, tax_group, tax_rate
             FROM receipt_items WHERE receipt_id = ?
             "#,
             id
@@ -166,6 +166,7 @@ pub async fn get_receipts(pool: &SqlitePool) -> Result<Vec<Receipt>> {
             };
 
             items.push(ReceiptItem::new(
+                item_record.item_id,
                 item_record.ean,
                 item_record.name,
                 item_record.price as f32,
@@ -305,14 +306,16 @@ pub async fn insert_receipt(pool: &SqlitePool, mut receipt: Receipt) -> Result<R
         let tax_group = item.get_tax_group();
         let tax_rate = item.get_tax_rate();
         let ean = item.get_ean();
+        let item_id = item.get_id();
         let name = item.get_name();
 
         let item_id = sqlx::query!(
             r#"
-            INSERT INTO receipt_items (receipt_id, ean, name, price, count, total, tax_group, tax_rate)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO receipt_items (receipt_id, item_id, ean, name, price, count, total, tax_group, tax_rate)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             "#,
             receipt_id,
+            item_id,
             ean,
             name,
             price,
@@ -464,72 +467,104 @@ pub async fn delete_receipts_by_retailer(pool: &SqlitePool, retailer: &str) -> R
     Ok(result.rows_affected() as u32)
 }
 
-pub async fn get_item(pool: &SqlitePool, ean: &str) -> Result<Vec<ReceiptItemSummary>> {
-    log::debug!("Fetching items with ean: {}", ean);
-    let items = sqlx::query!(
+pub async fn get_item(
+    pool: &SqlitePool,
+    ean: Option<String>,
+    store: Option<ReceiptStore>,
+    item_id: Option<String>,
+) -> Result<Vec<ReceiptItemSummary>> {
+    log::debug!(
+        "Fetching items with ean: {:?}, store: {:?}, item_id: {:?}",
+        ean,
+        store,
+        item_id
+    );
+
+    let mut query_builder: QueryBuilder<sqlx::Sqlite> = QueryBuilder::new(
         r#"
-        SELECT ri.id, ri.ean, ri.name, ri.price, ri.count, ri.total, ri.tax_group, ri.tax_rate, r.issued_at, r.store_type, r.store_value
-        FROM receipt_items ri JOIN receipts r ON r.id = ri.receipt_id WHERE ean = ? ORDER BY r.issued_at DESC
+        SELECT ri.id, ri.item_id, ri.ean, ri.name, ri.price, ri.count, ri.total, ri.tax_group, ri.tax_rate, r.issued_at, r.store_type, r.store_value
+        FROM receipt_items ri JOIN receipts r ON r.id = ri.receipt_id
         "#,
-        ean
-    )
-    .fetch_all(pool)
-    .await
-    .map_err(|e| {
-        log::error!("Failed to fetch items for ean {}: {:?}", ean, e);
-        e
-    })?;
+    );
 
-    let mut item_summaries = Vec::new();
-
-    for i in items {
-        let issued_at = match DateTime::parse_from_rfc3339(&i.issued_at) {
-            Ok(dt) => dt.to_utc(),
-            Err(e) => {
-                log::error!(
-                    "Failed to parse issued_at '{}' for ean '{}': {}",
-                    i.issued_at,
-                    i.ean.as_deref().unwrap_or_default(),
-                    e
-                );
-                continue;
-            }
+    if let Some(ean_val) = ean {
+        query_builder.push(" WHERE ri.ean = ");
+        query_builder.push_bind(ean_val);
+    } else if let (Some(store_val), Some(item_id_val)) = (store, item_id) {
+        let (store_type, store_value) = match &store_val {
+            ReceiptStore::Biedronka(_) => (Some("biedronka".to_string()), None),
+            ReceiptStore::Lidl(_) => (Some("lidl".to_string()), None),
+            ReceiptStore::Spolem(_) => (Some("spolem".to_string()), None),
+            ReceiptStore::Other(val) => (Some("other".to_string()), Some(val.clone())),
         };
 
-        let discounts = sqlx::query!(
+        query_builder.push(" WHERE r.store_type = ");
+        query_builder.push_bind(store_type);
+        if let Some(store_value) = store_value {
+            query_builder.push(" AND r.store_value = ");
+            query_builder.push_bind(store_value);
+        }
+        query_builder.push(" AND ri.item_id = ");
+        query_builder.push_bind(item_id_val);
+    } else {
+        // No valid search criteria provided
+        return Ok(Vec::new());
+    }
+
+    query_builder.push(" ORDER BY r.issued_at DESC");
+
+    let records = query_builder.build().fetch_all(pool).await?;
+
+    let mut item_summaries = Vec::new();
+    for record in records {
+        let issued_at = DateTime::parse_from_rfc3339(record.get("issued_at"))
+            .unwrap()
+            .to_utc();
+        let id: i64 = record.get("id");
+        let discounts = match sqlx::query!(
             "SELECT type, value FROM receipt_item_discounts WHERE receipt_item_id = ?",
-            i.id
+            id
         )
         .fetch_all(pool)
         .await
-        .unwrap_or_default()
-        .into_iter()
-        .map(|d| {
-            if d.r#type == "value" {
-                ReceiptItemDiscount::Value(d.value as f32)
-            } else {
-                ReceiptItemDiscount::Percent(d.value as f32)
+        {
+            Ok(discounts) => discounts
+                .into_iter()
+                .map(|d| {
+                    if d.r#type == "value" {
+                        ReceiptItemDiscount::Value(d.value as f32)
+                    } else {
+                        ReceiptItemDiscount::Percent(d.value as f32)
+                    }
+                })
+                .collect(),
+            Err(e) => {
+                log::error!("Failed to fetch discounts for item {}: {:?}", id, e);
+                Vec::new()
             }
-        })
-        .collect();
+        };
+
+        let store_type: Option<String> = record.get("store_type");
+        let store_value: Option<String> = record.get("store_value");
 
         item_summaries.push(ReceiptItemSummary::new(
             ReceiptItem::new(
-                i.ean,
-                i.name,
-                i.price as f32,
-                i.count as f32,
+                record.get("item_id"),
+                record.get("ean"),
+                record.get("name"),
+                record.get("price"),
+                record.get("count"),
                 discounts,
-                i.total as f32,
-                i.tax_group,
-                i.tax_rate.map(|f| f as f32),
+                record.get("total"),
+                record.get("tax_group"),
+                record.get("tax_rate"),
             ),
             issued_at,
-            if i.store_type.is_some() && i.store_value.is_some() {
+            if store_type.is_some() && store_value.is_some() {
                 unsafe {
                     ReceiptStore::from_parts(
-                        &i.store_type.clone().unwrap(),
-                        i.store_value.clone().unwrap(),
+                        &store_type.clone().unwrap(),
+                        store_value.clone().unwrap(),
                     )
                 }
             } else {

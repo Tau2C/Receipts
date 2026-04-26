@@ -6,10 +6,18 @@ import 'package:receipts/src/rust/api/receipts.dart';
 import 'package:system_date_time_format/system_date_time_format.dart';
 
 class ItemHistoryPage extends StatefulWidget {
-  final String ean;
+  final String? ean;
   final String itemName;
+  final ReceiptStore? store;
+  final String? itemId;
 
-  const ItemHistoryPage({super.key, required this.ean, required this.itemName});
+  const ItemHistoryPage({
+    super.key,
+    required this.ean,
+    required this.itemName,
+    required this.store,
+    required this.itemId,
+  });
 
   @override
   State<ItemHistoryPage> createState() => _ItemHistoryPageState();
@@ -25,7 +33,11 @@ class _ItemHistoryPageState extends State<ItemHistoryPage> {
   }
 
   Future<List<ReceiptItemSummary>> _fetchItemHistory() async {
-    return await context.read<DatabaseService>().getItem(ean: widget.ean);
+    return await context.read<DatabaseService>().getItem(
+      ean: widget.ean,
+      itemId: widget.itemId,
+      store: widget.store,
+    );
   }
 
   @override

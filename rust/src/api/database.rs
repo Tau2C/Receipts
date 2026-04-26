@@ -1,4 +1,4 @@
-use crate::api::receipts::{Receipt, ReceiptItemSummary};
+use crate::api::receipts::{Receipt, ReceiptItemSummary, ReceiptStore};
 use crate::db;
 use crate::{api::card::Card, db::LastFetchDateTimeErrors};
 use anyhow::Result;
@@ -135,9 +135,21 @@ impl DatabaseService {
             .map_err(|e| e.into())
     }
 
-    pub async fn get_item(&mut self, ean: String) -> Result<Vec<ReceiptItemSummary>> {
-        log::debug!("Fetching items with ean: {}", ean);
-        db::get_item(&self.pool, &ean).await.map_err(|e| e.into())
+    pub async fn get_item(
+        &mut self,
+        ean: Option<String>,
+        store: Option<ReceiptStore>,
+        item_id: Option<String>,
+    ) -> Result<Vec<ReceiptItemSummary>> {
+        log::debug!(
+            "Fetching items with ean: {:?}/{:?}:{:?}",
+            ean,
+            store,
+            item_id
+        );
+        db::get_item(&self.pool, ean, store, item_id)
+            .await
+            .map_err(|e| e.into())
     }
 
     pub async fn run_db_migrations(&mut self) -> Result<()> {

@@ -196,6 +196,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
 
     if (pickedDate == null) return;
 
+    if (!context.mounted) return;
     final pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_issuedAt),
@@ -203,6 +204,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
 
     if (pickedTime == null) return;
 
+    if (!context.mounted) return;
     final patterns = SystemDateTimeFormat.of(context);
 
     setState(() {
@@ -697,6 +699,10 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
                     matchingSummary = summary;
                     break;
                   }
+                }
+
+                if (matchingSummary == null) {
+                  // TODO: Automatically add tax summary section for that group
                 }
 
                 setState(() {

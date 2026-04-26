@@ -417,7 +417,18 @@ impl ReceiptProvider for SpolemClient {
                                 None => (None, i.name),
                             };
 
+                            let (ean, id) = if let Some(ean) = ean {
+                                if ean.len() == 13 {
+                                    (Some(ean), None)
+                                } else {
+                                    (None, Some(ean))
+                                }
+                            } else {
+                                (None, None)
+                            };
+
                             receipts::ReceiptItem::new(
+                                id,
                                 ean,
                                 name,
                                 (i.total_value

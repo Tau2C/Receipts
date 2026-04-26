@@ -128,8 +128,15 @@ impl TryFrom<Ticket> for receipts::Receipt {
                             })
                             .transpose()?;
 
+                        let (ean, id) = if i.code_input.len() == 13 {
+                            (Some(i.code_input), None)
+                        } else {
+                            (None, Some(i.code_input))
+                        };
+
                         Ok(ReceiptItem::new(
-                            Some(i.code_input),
+                            id,
+                            ean,
                             i.name,
                             current_unit_price,
                             quantity,
@@ -264,6 +271,7 @@ impl TryFrom<Ticket> for receipts::Receipt {
                                     let tax = item.get_tax_group().or(tax_type);
 
                                     current_item = Some(ReceiptItem::new(
+                                        item.get_id(),
                                         item.get_ean(),
                                         name,
                                         price,
@@ -278,6 +286,7 @@ impl TryFrom<Ticket> for receipts::Receipt {
                                     items.push(item);
                                     current_art_id = art_id.clone();
                                     current_item = Some(ReceiptItem::new(
+                                        art_id.clone(),
                                         None,
                                         description,
                                         unit_price,
@@ -292,6 +301,7 @@ impl TryFrom<Ticket> for receipts::Receipt {
                                 // First article
                                 current_art_id = art_id.clone();
                                 current_item = Some(ReceiptItem::new(
+                                    art_id.clone(),
                                     None,
                                     description,
                                     unit_price,
@@ -321,6 +331,7 @@ impl TryFrom<Ticket> for receipts::Receipt {
                                     let mut discounts = item.get_discounts();
                                     discounts.push(ReceiptItemDiscount::Value(discount_val));
                                     item = ReceiptItem::new(
+                                        item.get_id(),
                                         item.get_ean(),
                                         item.get_name(),
                                         item.get_price(),

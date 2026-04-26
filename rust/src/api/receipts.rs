@@ -188,6 +188,7 @@ impl ReceiptItemSummary {
 
 #[derive(Debug, Clone)]
 pub struct ReceiptItem {
+    id: Option<String>,
     ean: Option<String>,
     name: String,
     price: Centi<u32>,
@@ -201,6 +202,7 @@ pub struct ReceiptItem {
 impl ReceiptItem {
     #[frb(sync)]
     pub fn new(
+        id: Option<String>,
         ean: Option<String>,
         name: String,
         price: f32,
@@ -212,6 +214,7 @@ impl ReceiptItem {
     ) -> Self {
         log::debug!("ReceiptItem::new called for item: {}", name);
         Self {
+            id,
             ean,
             name,
             price: Centi::new((price * 100.0).round() as u32),
@@ -221,6 +224,13 @@ impl ReceiptItem {
             tax_group,
             tax_rate: tax_rate.map(|f| Centi::new((f * 100.0).round() as u16)),
         }
+    }
+
+    #[frb(sync, getter)]
+    #[inline]
+    pub fn get_id(&self) -> Option<String> {
+        log::debug!("ReceiptItem::id getter called");
+        self.id.clone()
     }
 
     #[frb(sync, getter)]

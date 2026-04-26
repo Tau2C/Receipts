@@ -74,18 +74,21 @@ class _ReceiptDetailPageState extends State<ReceiptDetailPage> {
                   // Check if EAN is populated
                   // Adjust property name 'ean' if it differs in your Rust schema
                   final hasEan = item.ean != null && item.ean!.isNotEmpty;
+                  final hasStoreItemId = item.id != null && item.id!.isNotEmpty;
 
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 4.0),
                     child: InkWell(
-                      onTap: hasEan
+                      onTap: hasEan || hasStoreItemId
                           ? () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => ItemHistoryPage(
-                                    ean: item.ean!,
+                                    ean: item.ean,
                                     itemName: item.name,
+                                    itemId: item.id,
+                                    store: widget.receipt.store,
                                   ),
                                 ),
                               );
@@ -107,10 +110,6 @@ class _ReceiptDetailPageState extends State<ReceiptDetailPage> {
                             ),
                             if (item.taxGroup != null)
                               Text('Tax Group: ${item.taxGroup}'),
-                            if (item.taxRate != null)
-                              Text(
-                                'Tax Rate: ${(item.taxRate! * 100).toStringAsFixed(0)}%',
-                              ),
                             if (item.discounts.isNotEmpty) ...[
                               const SizedBox(height: 4),
                               Text(
@@ -127,6 +126,16 @@ class _ReceiptDetailPageState extends State<ReceiptDetailPage> {
                                   ),
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
+                            ],
+                            if (hasStoreItemId) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                'ID: ${item.id}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
                             ],
                             if (hasEan) ...[
                               const SizedBox(height: 4),
