@@ -6,6 +6,14 @@ use chrono::{DateTime, Utc};
 use flutter_rust_bridge::frb;
 use sqlx::SqlitePool;
 
+#[frb]
+#[derive(Debug, Clone)]
+pub struct ItemIdEanMap {
+    pub store: String,
+    pub item_id: String,
+    pub ean: String,
+}
+
 #[frb(opaque)]
 pub struct DatabaseService {
     receipts_cache: Option<Vec<Receipt>>,
@@ -50,36 +58,36 @@ impl DatabaseService {
     }
 
     pub async fn update_last_fetch_date_time(
-        &mut self,
+        &self,
         retailer: &str,
         date_time: Option<DateTime<Utc>>,
     ) -> Result<i64> {
         log::debug!("Updating last fetch date time for retailer: {}", retailer);
-        db::update_last_fetch_date_time(&mut self.pool, retailer, date_time)
+        db::update_last_fetch_date_time(&self.pool, retailer, date_time)
             .await
             .map_err(|e| e.into())
     }
 
-    pub async fn get_cards(&mut self) -> Result<Vec<Card>> {
+    pub async fn get_cards(&self) -> Result<Vec<Card>> {
         log::debug!("Fetching all cards");
         db::get_cards(&self.pool).await.map_err(|e| e.into())
     }
 
-    pub async fn insert_card(&mut self, card: Card) -> Result<Card> {
+    pub async fn insert_card(&self, card: Card) -> Result<Card> {
         log::debug!("Inserting new card");
         db::insert_card(&self.pool, card)
             .await
             .map_err(|e| e.into())
     }
 
-    pub async fn update_card(&mut self, card: Card) -> Result<()> {
+    pub async fn update_card(&self, card: Card) -> Result<()> {
         log::debug!("Updating card");
         db::update_card(&self.pool, card)
             .await
             .map_err(|e| e.into())
     }
 
-    pub async fn delete_card(&mut self, id: i64) -> Result<()> {
+    pub async fn delete_card(&self, id: i64) -> Result<()> {
         log::debug!("Deleting card with id: {}", id);
         db::delete_card(&self.pool, id).await.map_err(|e| e.into())
     }
@@ -136,7 +144,7 @@ impl DatabaseService {
     }
 
     pub async fn get_item(
-        &mut self,
+        &self,
         ean: Option<String>,
         store: Option<ReceiptStore>,
         item_id: Option<String>,
@@ -152,7 +160,43 @@ impl DatabaseService {
             .map_err(|e| e.into())
     }
 
-    pub async fn run_db_migrations(&mut self) -> Result<()> {
+    pub async fn get_all_mappings(&self) -> Result<Vec<ItemIdEanMap>> {
+        log::debug!("Fetching all item_id_ean_map mappings");
+        db::get_all_mappings(&self.pool)
+            .await
+            .map_err(anyhow::Error::from)
+    }
+
+    pub async fn insert_item_id_ean_map(
+        &self,
+        store: &str,
+        item_id: &str,
+        ean: &str,
+    ) -> Result<()> {
+        log::debug!(
+            "Inserting item_id_ean_map for store: {}, item_id: {}, ean: {}",
+            store,
+            item_id,
+            ean
+        );
+        db::insert_item_id_ean_map(&self.pool, store, item_id, ean)
+            .await
+            .map_err(anyhow::Error::from)
+    }
+
+    pub async fn delete_item_id_ean_map(&self, store: &str, item_id: &str) -> Result<()> {
+        log::debug!(
+            "Deleting item_id_ean_map for store: {}, item_id: {}",
+            store,
+            item_id
+        );
+
+        db::delete_item_id_ean_map(&self.pool, store, item_id)
+            .await
+            .map_err(anyhow::Error::from)
+    }
+
+    pub async fn run_db_migrations(&self) -> Result<()> {
         log::debug!("Running database migrations");
         db::run_migrations(&self.pool)
             .await

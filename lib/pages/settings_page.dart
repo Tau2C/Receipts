@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:receipts/pages/Spolem_login_page.dart';
 import 'package:receipts/pages/biedronka_login_page.dart';
+import 'package:receipts/pages/id_ean_mapping_page.dart';
 import 'package:receipts/pages/lidl_login_page.dart';
 import 'package:receipts/retailer_manager.dart';
 import 'package:receipts/src/rust/api/database.dart';
@@ -147,6 +148,29 @@ class _SettingsPageState extends State<SettingsPage> {
               leading: Icon(Icons.lock_outline_rounded),
               title: Text('Privacy'),
               subtitle: Text('Storage and local data preferences'),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              'Data Management',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.link),
+              title: const Text('ID to EAN Mappings'),
+              subtitle: const Text('Manage item ID to EAN mappings'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const IdEanMappingPage(),
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(height: 24),

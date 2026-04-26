@@ -1,5 +1,6 @@
 use crate::api::{
     card::Card,
+    database::ItemIdEanMap,
     receipts::{
         Receipt, ReceiptItem, ReceiptItemDiscount, ReceiptItemSummary, ReceiptPayment,
         ReceiptPaymentType, ReceiptStore, ReceiptTaxSummary,
@@ -309,7 +310,7 @@ pub async fn insert_receipt(pool: &SqlitePool, mut receipt: Receipt) -> Result<R
         let item_id = item.get_id();
         let name = item.get_name();
 
-        let item_id = sqlx::query!(
+        let item_record_id = sqlx::query!(
             r#"
             INSERT INTO receipt_items (receipt_id, item_id, ean, name, price, count, total, tax_group, tax_rate)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -343,7 +344,7 @@ pub async fn insert_receipt(pool: &SqlitePool, mut receipt: Receipt) -> Result<R
                 INSERT INTO receipt_item_discounts (receipt_item_id, type, value)
                 VALUES (?, ?, ?)
                 "#,
-                item_id,
+                item_record_id,
                 discount_type,
                 value
             )
@@ -352,7 +353,7 @@ pub async fn insert_receipt(pool: &SqlitePool, mut receipt: Receipt) -> Result<R
             .map_err(|e| {
                 log::error!(
                     "Failed to insert receipt item discount for item {}: {:?}",
-                    item_id,
+                    item_record_id,
                     e
                 );
                 e
@@ -544,8 +545,8 @@ pub async fn get_item(
             }
         };
 
-        let store_type: Option<String> = record.get("store_type");
-        let store_value: Option<String> = record.get("store_value");
+        let store_type_from_db: Option<String> = record.get("store_type");
+        let store_value_from_db: Option<String> = record.get("store_value");
 
         item_summaries.push(ReceiptItemSummary::new(
             ReceiptItem::new(
@@ -560,11 +561,11 @@ pub async fn get_item(
                 record.get("tax_rate"),
             ),
             issued_at,
-            if store_type.is_some() && store_value.is_some() {
+            if store_type_from_db.is_some() && store_value_from_db.is_some() {
                 unsafe {
                     ReceiptStore::from_parts(
-                        &store_type.clone().unwrap(),
-                        store_value.clone().unwrap(),
+                        &store_type_from_db.clone().unwrap(),
+                        store_value_from_db.clone().unwrap(),
                     )
                 }
             } else {
@@ -574,6 +575,82 @@ pub async fn get_item(
     }
 
     Ok(item_summaries)
+}
+
+pub async fn get_ean_by_item_id(
+    pool: &SqlitePool,
+    store: &str,
+    item_id: &str,
+) -> Result<Option<String>> {
+    log::debug!("Fetching EAN for store: {}, item_id: {}", store, item_id);
+
+    let result = sqlx::query!(
+        "SELECT ean FROM item_id_ean_map WHERE store = ? AND item_id = ?",
+        store,
+        item_id
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(result.map(|row| row.ean))
+}
+
+pub async fn insert_item_id_ean_map(
+    pool: &SqlitePool,
+    store: &str,
+    item_id: &str,
+    ean: &str,
+) -> Result<()> {
+    log::debug!(
+        "Inserting item_id_ean_map for store: {}, item_id: {}, ean: {}",
+        store,
+        item_id,
+        ean
+    );
+
+    sqlx::query!(
+        r#"
+        INSERT INTO item_id_ean_map (store, item_id, ean)
+        VALUES (?, ?, ?)
+        ON CONFLICT (store, item_id) DO UPDATE SET ean = EXCLUDED.ean
+        "#,
+        store,
+        item_id,
+        ean
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn get_all_mappings(pool: &SqlitePool) -> Result<Vec<ItemIdEanMap>> {
+    log::debug!("Fetching all item_id_ean_map mappings");
+    let mappings = sqlx::query_as!(
+        ItemIdEanMap,
+        "SELECT store, item_id, ean FROM item_id_ean_map"
+    )
+    .fetch_all(pool)
+    .await?;
+    Ok(mappings)
+}
+
+pub async fn delete_item_id_ean_map(pool: &SqlitePool, store: &str, item_id: &str) -> Result<()> {
+    log::debug!(
+        "Deleting item_id_ean_map for store: {}, item_id: {}",
+        store,
+        item_id
+    );
+
+    sqlx::query!(
+        "DELETE FROM item_id_ean_map WHERE store = ? AND item_id = ?",
+        store,
+        item_id
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
 }
 
 #[derive(Debug)]
