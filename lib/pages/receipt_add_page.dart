@@ -29,6 +29,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
   final List<_ReceiptTaxSummaryData> _taxSummary = [];
   final List<_ReceiptPaymentData> _payments = [];
   final List<TextEditingController> _itemControllers = [];
+  final List<TextEditingController> _totalControllers = [];
 
   final List<FocusNode> _nameFocus = [];
   final List<FocusNode> _priceFocus = [];
@@ -72,6 +73,9 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
     _dateController.dispose();
     _storeController.dispose();
     for (final c in _itemControllers) {
+      c.dispose();
+    }
+    for (final c in _totalControllers) {
       c.dispose();
     }
     for (final f in _nameFocus) {
@@ -123,6 +127,37 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
   void _removeDiscount(int index) {
     setState(() {
       _discounts.removeAt(index);
+    });
+  }
+
+  void _updateItemTotal(int index) {
+    if (index >= _items.length || _items[index].isTotalManual) return;
+
+    final item = _items[index];
+    double baseTotal = item.price * item.count;
+    double discountsValue = 0;
+
+    for (final discount in item.discounts) {
+      discount.type.when(
+        value: (_) {
+          discountsValue += discount.value;
+        },
+        percent: (_) {
+          // discount.value is a percentage, e.g. 10 for 10%
+          discountsValue += baseTotal * (discount.value / 100.0);
+        },
+      );
+    }
+
+    final newTotal = baseTotal - discountsValue;
+
+    setState(() {
+      if (index < _items.length) {
+        _items[index] = item.copyWith(total: newTotal);
+        if (index < _totalControllers.length) {
+          _totalControllers[index].text = newTotal.toStringAsFixed(2);
+        }
+      }
     });
   }
 
@@ -199,6 +234,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
         ),
       );
       _itemControllers.add(TextEditingController());
+      _totalControllers.add(TextEditingController(text: '0.00'));
       _nameFocus.add(FocusNode());
       _priceFocus.add(FocusNode());
       _countFocus.add(FocusNode());
@@ -211,22 +247,28 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
 
   void _removeItem(int index) {
     setState(() {
+      _nameFocus[index].dispose();
+      _priceFocus[index].dispose();
+      _countFocus[index].dispose();
+      _totalFocus[index].dispose();
+      _eanFocus[index].dispose();
+      _taxGroupFocus[index].dispose();
+      _taxRateFocus[index].dispose();
+
       _items.removeAt(index);
       _itemControllers[index].dispose();
       _itemControllers.removeAt(index);
-    });
-    _nameFocus[index].dispose();
-    _priceFocus[index].dispose();
-    _countFocus[index].dispose();
-    _totalFocus[index].dispose();
+      _totalControllers[index].dispose();
+      _totalControllers.removeAt(index);
 
-    _nameFocus.removeAt(index);
-    _priceFocus.removeAt(index);
-    _countFocus.removeAt(index);
-    _totalFocus.removeAt(index);
-    _eanFocus.removeAt(index);
-    _taxGroupFocus.removeAt(index);
-    _taxRateFocus.removeAt(index);
+      _nameFocus.removeAt(index);
+      _priceFocus.removeAt(index);
+      _countFocus.removeAt(index);
+      _totalFocus.removeAt(index);
+      _eanFocus.removeAt(index);
+      _taxGroupFocus.removeAt(index);
+      _taxRateFocus.removeAt(index);
+    });
   }
 
   void _addTaxSummary() {
@@ -256,7 +298,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
               textInputAction: TextInputAction.next,
               decoration: const InputDecoration(labelText: 'Tax Group'),
               onChanged: (v) {
-                _taxSummary[index] = taxSummary.copyWith(taxGroup: v);
+                _taxSummary[index] = _taxSummary[index].copyWith(taxGroup: v);
               },
               onFieldSubmitted: (_) {
                 _taxSummaryRateFocus[index].requestFocus();
@@ -275,7 +317,9 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
                     keyboardType: TextInputType.number,
                     onChanged: (v) {
                       final rate = double.tryParse(v) ?? 0.0;
-                      _taxSummary[index] = taxSummary.copyWith(taxRate: rate);
+                      _taxSummary[index] = _taxSummary[index].copyWith(
+                        taxRate: rate,
+                      );
                     },
                     onFieldSubmitted: (_) {
                       _taxSummarySalesValueFocus[index].requestFocus();
@@ -292,7 +336,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
                     keyboardType: TextInputType.number,
                     onChanged: (v) {
                       final value = double.tryParse(v) ?? 0.0;
-                      _taxSummary[index] = taxSummary.copyWith(
+                      _taxSummary[index] = _taxSummary[index].copyWith(
                         salesValue: value,
                       );
                     },
@@ -311,7 +355,9 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
                     keyboardType: TextInputType.number,
                     onChanged: (v) {
                       final value = double.tryParse(v) ?? 0.0;
-                      _taxSummary[index] = taxSummary.copyWith(taxValue: value);
+                      _taxSummary[index] = _taxSummary[index].copyWith(
+                        taxValue: value,
+                      );
                     },
                     onFieldSubmitted: (_) {
                       if (_taxSummary.length > 1 &&
@@ -398,7 +444,9 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
                 onChanged: (v) {
                   if (v != null) {
                     setState(() {
-                      _payments[index] = payment.copyWith(paymentType: v);
+                      _payments[index] = _payments[index].copyWith(
+                        paymentType: v,
+                      );
                     });
                   }
                 },
@@ -415,7 +463,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
                 decoration: const InputDecoration(labelText: 'Value'),
                 onChanged: (v) {
                   final value = double.tryParse(v) ?? 0.0;
-                  _payments[index] = payment.copyWith(value: value);
+                  _payments[index] = _payments[index].copyWith(value: value);
                 },
                 onFieldSubmitted: (_) {
                   if (_payments.length > 1 &&
@@ -464,10 +512,15 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
       (sum, item) => sum + item.taxValue,
     );
 
+    var receiptTotal = _total;
+    if (receiptTotal == 0.0) {
+      receiptTotal = _items.fold<double>(0.0, (sum, item) => sum + item.total);
+    }
+
     final newReceipt = Receipt(
       store: receiptStore,
       issuedAt: _issuedAt.toUtc(),
-      total: _total,
+      total: receiptTotal,
       items: _items.map((e) => e.toApi()).toList(),
       discounts: _discounts,
       taxSummary: _taxSummary.map((e) => e.toApi()).toList(),
@@ -506,7 +559,10 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
 
   Widget _buildItem(int index) {
     final controller = _itemControllers[index];
+    final totalController = _totalControllers[index];
     final item = _items[index];
+
+    totalController.text = item.total.toStringAsFixed(2);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -521,7 +577,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
               },
               onSelected: (suggestion) {
                 controller.text = suggestion;
-                _items[index] = item.copyWith(name: suggestion);
+                _items[index] = _items[index].copyWith(name: suggestion);
                 _priceFocus[index].requestFocus();
               },
               builder: (context, fieldController, focusNode) {
@@ -539,7 +595,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
                     return null;
                   },
                   onChanged: (value) {
-                    _items[index] = item.copyWith(name: value);
+                    _items[index] = _items[index].copyWith(name: value);
                   },
                   onFieldSubmitted: (_) {
                     _priceFocus[index].requestFocus();
@@ -553,7 +609,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
               focusNode: _eanFocus[index],
               decoration: const InputDecoration(labelText: 'EAN'),
               onChanged: (v) {
-                _items[index] = item.copyWith(ean: v);
+                _items[index] = _items[index].copyWith(ean: v);
               },
               onFieldSubmitted: (_) {
                 _priceFocus[index].requestFocus();
@@ -570,12 +626,8 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
                     keyboardType: TextInputType.number,
                     onChanged: (v) {
                       final price = double.tryParse(v) ?? 0;
-                      final count = item.count;
-                      _items[index] = item.copyWith(
-                        price: price,
-                        total: price * count,
-                      );
-                      setState(() {});
+                      _items[index] = _items[index].copyWith(price: price);
+                      _updateItemTotal(index);
                     },
                     onFieldSubmitted: (_) {
                       _countFocus[index].requestFocus();
@@ -592,12 +644,8 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
                     keyboardType: TextInputType.number,
                     onChanged: (v) {
                       final count = double.tryParse(v) ?? 0;
-                      final price = item.price;
-                      _items[index] = item.copyWith(
-                        count: count,
-                        total: price * count,
-                      );
-                      setState(() {});
+                      _items[index] = _items[index].copyWith(count: count);
+                      _updateItemTotal(index);
                     },
                     onFieldSubmitted: (_) {
                       _totalFocus[index].requestFocus();
@@ -607,14 +655,24 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
-                    initialValue: item.total.toStringAsFixed(2),
+                    controller: totalController,
                     focusNode: _totalFocus[index],
                     textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Total'),
                     onChanged: (v) {
-                      final total = double.tryParse(v) ?? 0;
-                      _items[index] = item.copyWith(total: total);
+                      if (v.isEmpty) {
+                        _items[index] = _items[index].copyWith(
+                          isTotalManual: false,
+                        );
+                        _updateItemTotal(index);
+                      } else {
+                        final total = double.tryParse(v) ?? 0;
+                        _items[index] = _items[index].copyWith(
+                          total: total,
+                          isTotalManual: true,
+                        );
+                      }
                     },
                     onFieldSubmitted: (_) {
                       _taxGroupFocus[index].requestFocus();
@@ -633,21 +691,39 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
               focusNode: _taxGroupFocus[index],
               decoration: const InputDecoration(labelText: 'Tax Group'),
               onChanged: (v) {
-                _items[index] = item.copyWith(taxGroup: v);
+                double? newRate;
+                _ReceiptTaxSummaryData? matchingSummary;
+                for (final summary in _taxSummary) {
+                  if (summary.taxGroup?.toUpperCase() == v.toUpperCase()) {
+                    matchingSummary = summary;
+                    break;
+                  }
+                }
+
+                setState(() {
+                  _items[index] = _items[index].copyWith(
+                    taxGroup: v,
+                    taxRate: matchingSummary?.taxRate,
+                  );
+                });
               },
               onFieldSubmitted: (_) {
                 _taxRateFocus[index].requestFocus();
               },
             ),
             TextFormField(
-              initialValue: item.taxRate?.toStringAsFixed(2),
+              initialValue: item.taxRate != null
+                  ? (item.taxRate! * 100).toStringAsFixed(0)
+                  : '',
               textInputAction: TextInputAction.done,
               focusNode: _taxRateFocus[index],
-              decoration: const InputDecoration(labelText: 'Tax Rate'),
+              decoration: const InputDecoration(labelText: 'Tax Rate (%)'),
               keyboardType: TextInputType.number,
               onChanged: (v) {
                 final taxRate = double.tryParse(v);
-                _items[index] = item.copyWith(taxRate: taxRate);
+                _items[index] = _items[index].copyWith(
+                  taxRate: taxRate != null ? taxRate / 100.0 : null,
+                );
               },
               onFieldSubmitted: (_) {
                 if (index < _items.length - 1) {
@@ -693,12 +769,14 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
           value: 0.0,
         ),
       );
+      _updateItemTotal(itemIndex);
     });
   }
 
   void _removeItemDiscount(int itemIndex, int discountIndex) {
     setState(() {
       _items[itemIndex].discounts.removeAt(discountIndex);
+      _updateItemTotal(itemIndex);
     });
   }
 
@@ -709,7 +787,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
         Expanded(
           flex: 2,
           child: DropdownButtonFormField<ReceiptItemDiscount>(
-            initialValue: discount.type,
+            value: discount.type,
             items: [
               DropdownMenuItem(
                 value: ReceiptItemDiscount.value(0),
@@ -722,10 +800,10 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
             ],
             onChanged: (v) {
               if (v != null) {
-                setState(() {
-                  _items[itemIndex].discounts[discountIndex] = discount
-                      .copyWith(type: v);
-                });
+                _items[itemIndex].discounts[discountIndex] = _items[itemIndex]
+                    .discounts[discountIndex]
+                    .copyWith(type: v);
+                _updateItemTotal(itemIndex);
               }
             },
           ),
@@ -739,9 +817,10 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
             decoration: const InputDecoration(labelText: 'Value'),
             onChanged: (v) {
               final value = double.tryParse(v) ?? 0.0;
-              _items[itemIndex].discounts[discountIndex] = discount.copyWith(
-                value: value,
-              );
+              _items[itemIndex].discounts[discountIndex] = _items[itemIndex]
+                  .discounts[discountIndex]
+                  .copyWith(value: value);
+              _updateItemTotal(itemIndex);
             },
           ),
         ),
@@ -1003,7 +1082,7 @@ class _ReceiptItemDiscountData {
   ReceiptItemDiscount toApi() {
     return type.when(
       value: (_) => ReceiptItemDiscount.value(value),
-      percent: (_) => ReceiptItemDiscount.percent(value),
+      percent: (_) => ReceiptItemDiscount.percent(value / 100.0),
     );
   }
 
@@ -1027,6 +1106,7 @@ class _ReceiptItemData {
   double total;
   String? taxGroup;
   double? taxRate;
+  bool isTotalManual;
 
   _ReceiptItemData({
     this.ean,
@@ -1037,6 +1117,7 @@ class _ReceiptItemData {
     required this.total,
     this.taxGroup,
     this.taxRate,
+    this.isTotalManual = false,
   });
 
   ReceiptItem toApi() {
@@ -1061,6 +1142,7 @@ class _ReceiptItemData {
     double? total,
     String? taxGroup,
     double? taxRate,
+    bool? isTotalManual,
   }) {
     return _ReceiptItemData(
       ean: ean ?? this.ean,
@@ -1071,6 +1153,7 @@ class _ReceiptItemData {
       total: total ?? this.total,
       taxGroup: taxGroup ?? this.taxGroup,
       taxRate: taxRate ?? this.taxRate,
+      isTotalManual: isTotalManual ?? this.isTotalManual,
     );
   }
 }
