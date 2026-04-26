@@ -51,6 +51,7 @@ dependencies:
   url_launcher: ^6.3.2
   webview_flutter: ^4.13.1
   system_date_time_format: ^1.4.0
+  simple_barcode_scanner: ^0.6.0
 
 dev_dependencies:
   flutter_test:

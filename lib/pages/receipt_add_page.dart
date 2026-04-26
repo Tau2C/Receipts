@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:receipts/src/rust/api/database.dart';
 import 'package:receipts/src/rust/api/receipts.dart';
+import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import 'package:system_date_time_format/system_date_time_format.dart';
 
 class ReceiptAddPage extends StatefulWidget {
@@ -30,6 +31,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
   final List<_ReceiptPaymentData> _payments = [];
   final List<TextEditingController> _itemControllers = [];
   final List<TextEditingController> _totalControllers = [];
+  final List<TextEditingController> _eanControllers = [];
 
   final List<FocusNode> _nameFocus = [];
   final List<FocusNode> _priceFocus = [];
@@ -78,6 +80,9 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
     for (final c in _totalControllers) {
       c.dispose();
     }
+    for (final c in _eanControllers) {
+      c.dispose();
+    }
     for (final f in _nameFocus) {
       f.dispose();
     }
@@ -116,6 +121,19 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
     }
 
     super.dispose();
+  }
+
+  Future<void> _scanBarcode(int index) async {
+    final res = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SimpleBarcodeScannerPage()),
+    );
+    setState(() {
+      if (res is String && res != '-1') {
+        _items[index] = _items[index].copyWith(ean: res);
+        _eanControllers[index].text = res;
+      }
+    });
   }
 
   void _addDiscount() {
@@ -237,6 +255,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
       );
       _itemControllers.add(TextEditingController());
       _totalControllers.add(TextEditingController(text: '0.00'));
+      _eanControllers.add(TextEditingController());
       _nameFocus.add(FocusNode());
       _priceFocus.add(FocusNode());
       _countFocus.add(FocusNode());
@@ -262,6 +281,8 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
       _itemControllers.removeAt(index);
       _totalControllers[index].dispose();
       _totalControllers.removeAt(index);
+      _eanControllers[index].dispose();
+      _eanControllers.removeAt(index);
 
       _nameFocus.removeAt(index);
       _priceFocus.removeAt(index);
@@ -562,9 +583,11 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
   Widget _buildItem(int index) {
     final controller = _itemControllers[index];
     final totalController = _totalControllers[index];
+    final eanController = _eanControllers[index];
     final item = _items[index];
 
     totalController.text = item.total.toStringAsFixed(2);
+    eanController.text = item.ean ?? '';
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -606,10 +629,16 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
               },
             ),
             TextFormField(
-              initialValue: item.ean,
+              controller: eanController,
               textInputAction: TextInputAction.next,
               focusNode: _eanFocus[index],
-              decoration: const InputDecoration(labelText: 'EAN'),
+              decoration: InputDecoration(
+                labelText: 'EAN',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.camera_alt),
+                  onPressed: () => _scanBarcode(index),
+                ),
+              ),
               onChanged: (v) {
                 _items[index] = _items[index].copyWith(ean: v);
               },
