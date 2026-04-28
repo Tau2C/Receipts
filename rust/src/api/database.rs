@@ -174,14 +174,24 @@ impl DatabaseService {
         ean: &str,
     ) -> Result<()> {
         log::debug!(
-            "Inserting item_id_ean_map for store: {}, item_id: {}, ean: {}",
+            "Inserting item_id_ean_map for store: {:?}, item_id: {}, ean: {}",
             store,
             item_id,
             ean
         );
-        db::insert_item_id_ean_map(&self.pool, store, item_id, ean)
-            .await
-            .map_err(anyhow::Error::from)
+        db::insert_item_id_ean_map(
+            &self.pool,
+            &match store {
+                "lidl" | "Lidl" => ReceiptStore::Lidl(String::new()),
+                "spolem" | "Społem" => ReceiptStore::Spolem(String::new()),
+                "biedronka" | "Biedronka" => ReceiptStore::Biedronka(String::new()),
+                _ => ReceiptStore::Other(store.to_string()),
+            },
+            item_id,
+            ean,
+        )
+        .await
+        .map_err(anyhow::Error::from)
     }
 
     pub async fn delete_item_id_ean_map(&self, store: &str, item_id: &str) -> Result<()> {
@@ -192,6 +202,13 @@ impl DatabaseService {
         );
 
         db::delete_item_id_ean_map(&self.pool, store, item_id)
+            .await
+            .map_err(anyhow::Error::from)
+    }
+
+    pub async fn get_stores(&self) -> Result<Vec<String>> {
+        log::debug!("Get stores");
+        db::get_stores(&self.pool)
             .await
             .map_err(anyhow::Error::from)
     }

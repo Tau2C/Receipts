@@ -585,7 +585,16 @@ pub async fn get_ean_by_item_id(
     log::debug!("Fetching EAN for store: {}, item_id: {}", store, item_id);
 
     let result = sqlx::query!(
-        "SELECT ean FROM item_id_ean_map WHERE store = ? AND item_id = ?",
+        r#"
+        SELECT ean
+            FROM item_id_ean_map
+            WHERE
+                (store_type IN ('biedronka','lidl','spolem') AND store_type = ?)
+                OR
+                (store_type = 'other' AND store_value = ?)
+              AND item_id = ?
+        "#,
+        store,
         store,
         item_id
     )
@@ -597,24 +606,27 @@ pub async fn get_ean_by_item_id(
 
 pub async fn insert_item_id_ean_map(
     pool: &SqlitePool,
-    store: &str,
+    store: &ReceiptStore,
     item_id: &str,
     ean: &str,
 ) -> Result<()> {
     log::debug!(
-        "Inserting item_id_ean_map for store: {}, item_id: {}, ean: {}",
+        "Inserting item_id_ean_map for store: {:?}, item_id: {}, ean: {}",
         store,
         item_id,
         ean
     );
 
+    let (store_type, store_value) = store.to_parts();
+
     sqlx::query!(
         r#"
-        INSERT INTO item_id_ean_map (store, item_id, ean)
-        VALUES (?, ?, ?)
-        ON CONFLICT (store, item_id) DO UPDATE SET ean = EXCLUDED.ean
+        INSERT INTO item_id_ean_map (store_type, store_value, item_id, ean)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT (store_type, store_value, item_id) DO UPDATE SET ean = EXCLUDED.ean
         "#,
-        store,
+        store_type,
+        store_value,
         item_id,
         ean
     )
@@ -628,10 +640,23 @@ pub async fn get_all_mappings(pool: &SqlitePool) -> Result<Vec<ItemIdEanMap>> {
     log::debug!("Fetching all item_id_ean_map mappings");
     let mappings = sqlx::query_as!(
         ItemIdEanMap,
-        "SELECT store, item_id, ean FROM item_id_ean_map"
+        "SELECT
+            CASE
+                WHEN store_type IN ('lidl', 'biedronka', 'spolem') THEN store_type
+                ELSE store_value
+            END AS store,
+            item_id, ean
+        FROM item_id_ean_map"
     )
     .fetch_all(pool)
-    .await?;
+    .await?
+    .into_iter()
+    .map(|f| ItemIdEanMap {
+        store: f.store,
+        item_id: f.item_id,
+        ean: f.ean,
+    })
+    .collect();
     Ok(mappings)
 }
 
@@ -643,7 +668,13 @@ pub async fn delete_item_id_ean_map(pool: &SqlitePool, store: &str, item_id: &st
     );
 
     sqlx::query!(
-        "DELETE FROM item_id_ean_map WHERE store = ? AND item_id = ?",
+        "DELETE FROM item_id_ean_map
+        WHERE
+            (store_type IN ('biedronka','lidl','spolem') AND store_type = ?)
+            OR
+            (store_type = 'other' AND store_value = ?)
+            AND item_id = ?",
+        store,
         store,
         item_id
     )
@@ -651,6 +682,36 @@ pub async fn delete_item_id_ean_map(pool: &SqlitePool, store: &str, item_id: &st
     .await?;
 
     Ok(())
+}
+
+pub async fn get_stores(pool: &SqlitePool) -> Result<Vec<String>> {
+    log::debug!("Get stores");
+    let result = sqlx::query!(
+        "SELECT
+            DISTINCT
+            CASE
+                WHEN store_type IN ('lidl', 'biedronka', 'spolem') THEN store_type
+                ELSE store_value
+            END AS store
+        FROM receipts"
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|e| {
+        log::error!("Failed to get list of stores: {:?}", e);
+        e
+    })?
+    .into_iter()
+    .filter_map(|f| match f.store {
+        Some(a) if a == "biedronka" || a == "lidl" || a == "spolem" => {
+            Some(a.chars().nth(0).unwrap().to_string().to_uppercase() + &a[1..])
+        }
+        Some(a) => Some(a),
+        None => None,
+    })
+    .collect();
+
+    Ok(result)
 }
 
 #[derive(Debug)]

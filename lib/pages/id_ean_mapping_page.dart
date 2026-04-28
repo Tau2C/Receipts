@@ -88,24 +88,37 @@ class _IdEanMappingPageState extends State<IdEanMappingPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    DropdownButtonFormField<String>(
-                      value: _selectedStore,
-                      decoration: const InputDecoration(labelText: 'Store'),
-                      items: ['lidl', 'biedronka', 'spolem']
-                          .map(
-                            (store) => DropdownMenuItem(
-                              value: store,
-                              child: Text(store),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        setDialogState(() {
-                          _selectedStore = value;
-                        });
+                    FutureBuilder<List<String>>(
+                      future: context.read<DatabaseService>().getStores(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        }
+                        if (snapshot.hasError) {
+                          return const Text('Error loading stores');
+                        }
+                        final stores = snapshot.data ?? [];
+                        return DropdownButtonFormField<String>(
+                          initialValue: _selectedStore,
+                          decoration: const InputDecoration(labelText: 'Store'),
+                          items: stores
+                              .map(
+                                (store) => DropdownMenuItem(
+                                  value: store,
+                                  child: Text(store),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setDialogState(() {
+                              _selectedStore = value;
+                            });
+                          },
+                          validator: (value) =>
+                              value == null ? 'Please select a store' : null,
+                        );
                       },
-                      validator: (value) =>
-                          value == null ? 'Please select a store' : null,
                     ),
                     TypeAheadField<String>(
                       controller: _itemIdController,

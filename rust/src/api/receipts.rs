@@ -137,10 +137,20 @@ impl ReceiptStore {
             value
         );
         match kind {
-            "biedronka" => Self::Biedronka(value),
-            "lidl" => Self::Lidl(value),
-            "spolem" => Self::Spolem(value),
+            "Biedronka" | "biedronka" => Self::Biedronka(value),
+            "Lidl" | "lidl" => Self::Lidl(value),
+            "Spolem" | "spolem" => Self::Spolem(value),
             _ => Self::Other(value),
+        }
+    }
+
+    #[frb(ignore)]
+    pub fn to_parts(&self) -> (&str, &str) {
+        match self {
+            ReceiptStore::Other(v) => ("Other", v),
+            ReceiptStore::Biedronka(v) => ("Biedronka", v),
+            ReceiptStore::Lidl(v) => ("Lidl", v),
+            ReceiptStore::Spolem(v) => ("Społem", v),
         }
     }
 }
