@@ -707,17 +707,26 @@ pub async fn update_last_fetch_date_time(
     retailer: &str,
     date_time: Option<DateTime<Utc>>,
 ) -> Result<i64> {
-    log::debug!("Updating last fetch date for {}: {:?}", retailer, date_time);
+    log::debug!(
+        "Upserting last fetch date for {}: {:?}",
+        retailer,
+        date_time
+    );
     let date_time_str = date_time.map(|v| v.to_rfc3339());
     let result = sqlx::query!(
-        "UPDATE retailers SET last_fetch_date_time = ? WHERE name = ?",
-        date_time_str,
-        retailer
+        r#"
+        INSERT INTO retailers (name, last_fetch_date_time)
+        VALUES (?, ?)
+        ON CONFLICT(name)
+        DO UPDATE SET last_fetch_date_time = excluded.last_fetch_date_time
+        "#,
+        retailer,
+        date_time_str
     )
     .execute(pool)
     .await
     .map_err(|e| {
-        log::error!("Failed to update fetch date for {}: {:?}", retailer, e);
+        log::error!("Failed to upsert fetch date for {}: {:?}", retailer, e);
         e
     })?;
 
