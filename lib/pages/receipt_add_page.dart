@@ -22,7 +22,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
   double _total = 0.0;
 
   final Set<String> _cachedStores = {};
-  final Set<String> _cachedItems = {};
+  final Set<(String, String)> _cachedItems = {};
   bool _cachesLoaded = false;
 
   final List<_ReceiptItemData> _items = [];
@@ -195,7 +195,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
         _cachedStores.add(storeName);
 
         for (final item in r.items) {
-          _cachedItems.add(item.name);
+          _cachedItems.add((storeName, item.name));
         }
       }
       _cachesLoaded = true;
@@ -576,7 +576,12 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
   Future<List<String>> _getItemSuggestions(String pattern) async {
     await _loadSuggestionsCache();
     return _cachedItems
-        .where((i) => i.toLowerCase().contains(pattern.toLowerCase()))
+        .where(
+          (i) =>
+              i.$1.toLowerCase().contains(_storeController.text.toLowerCase()),
+        )
+        .where((i) => i.$2.toLowerCase().contains(pattern.toLowerCase()))
+        .map((i) => i.$2)
         .toList();
   }
 
