@@ -470,9 +470,9 @@ pub async fn delete_receipts_by_retailer(pool: &SqlitePool, retailer: &str) -> R
 
 pub async fn get_item(
     pool: &SqlitePool,
-    ean: Option<String>,
+    ean: Option<&str>,
     store: Option<ReceiptStore>,
-    item_id: Option<String>,
+    item_id: Option<&str>,
 ) -> Result<Vec<ReceiptItemSummary>> {
     log::debug!(
         "Fetching items with ean: {:?}, store: {:?}, item_id: {:?}",

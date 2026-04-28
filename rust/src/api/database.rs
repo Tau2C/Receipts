@@ -135,7 +135,7 @@ impl DatabaseService {
             .map_err(|e| e.into())
     }
 
-    pub async fn delete_receipts_by_retailer(&mut self, retailer: String) -> Result<u32> {
+    pub async fn delete_receipts_by_retailer(&mut self, retailer: &str) -> Result<u32> {
         log::debug!("Deleting receipt from {}", &retailer);
         self.receipts_cache = None;
         db::delete_receipts_by_retailer(&self.pool, &retailer)
@@ -155,7 +155,7 @@ impl DatabaseService {
             store,
             item_id
         );
-        db::get_item(&self.pool, ean, store, item_id)
+        db::get_item(&self.pool, ean.as_deref(), store, item_id.as_deref())
             .await
             .map_err(|e| e.into())
     }
