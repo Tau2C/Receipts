@@ -7,6 +7,9 @@ import 'package:receipts/pages/lidl_login_page.dart';
 import 'package:receipts/retailer_manager.dart';
 import 'package:receipts/src/rust/api/database.dart';
 import 'package:receipts/src/rust/api/receipts.dart';
+import 'package:receipts/src/rust/api/retailers/biedronka.dart';
+import 'package:receipts/src/rust/api/retailers/lidl.dart';
+import 'package:receipts/src/rust/api/retailers/spolem.dart';
 
 const bool enableBiedronka = true;
 const bool enableLidl = true;
@@ -56,11 +59,11 @@ class _SettingsPageState extends State<SettingsPage> {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {
-          if (retailer == 'Społem') {
+          if (retailer == SpolemClient.dbKey) {
             return const SpolemLoginPage();
-          } else if (retailer == 'Biedronka') {
+          } else if (retailer == BiedronkaClient.dbKey) {
             return const BiedronkaLoginPage();
-          } else if (retailer == 'Lidl') {
+          } else if (retailer == LidlClient.dbKey) {
             return const LidlLoginPage();
           }
 
@@ -184,7 +187,7 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 8),
           if (enableSpolem)
             Card(
-              child: _retailerManager.isLoggedIn('biedronka')
+              child: _retailerManager.isLoggedIn(BiedronkaClient.dbKey)
                   ? Column(
                       children: [
                         ListTile(
@@ -193,7 +196,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           subtitle: const Text('Logged In'),
                           trailing: TextButton(
                             child: const Text('LOGOUT'),
-                            onPressed: () => _logout('biedronka'),
+                            onPressed: () => _logout(BiedronkaClient.dbKey),
                           ),
                         ),
                         const Divider(height: 1),
@@ -208,7 +211,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             );
                             final db = context.read<DatabaseService>();
                             final message = await _fetchReceipts(
-                              'biedronka',
+                              BiedronkaClient.dbKey,
                               db,
                             );
                             if (!mounted) return;
@@ -229,13 +232,15 @@ class _SettingsPageState extends State<SettingsPage> {
                             await context
                                 .read<DatabaseService>()
                                 .updateLastFetchDateTime(
-                                  retailer: 'biedronka',
+                                  retailer: BiedronkaClient.dbKey,
                                   dateTime: DateTime.fromMillisecondsSinceEpoch(
                                     0,
                                     isUtc: true,
                                   ),
                                 ),
-                            _retailerManager.getClient('biedronka')?.lastFetch =
+                            _retailerManager
+                                    .getClient(BiedronkaClient.dbKey)
+                                    ?.lastFetch =
                                 DateTime.fromMillisecondsSinceEpoch(
                                   0,
                                   isUtc: true,
@@ -246,7 +251,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         ListTile(
                           leading: const Icon(Icons.delete_forever),
                           title: const Text('Purge Biedronka Receipts'),
-                          onTap: () => _purgeRetailerReceipts('biedronka'),
+                          onTap: () =>
+                              _purgeRetailerReceipts(BiedronkaClient.dbKey),
                         ),
                       ],
                     )
@@ -255,12 +261,12 @@ class _SettingsPageState extends State<SettingsPage> {
                       title: const Text('Biedronka'),
                       subtitle: const Text('Not logged in'),
                       trailing: const Icon(Icons.login),
-                      onTap: () => _login('Biedronka'),
+                      onTap: () => _login(BiedronkaClient.dbKey),
                     ),
             ),
           if (enableLidl)
             Card(
-              child: _retailerManager.isLoggedIn('lidl')
+              child: _retailerManager.isLoggedIn(LidlClient.dbKey)
                   ? Column(
                       children: [
                         ListTile(
@@ -269,7 +275,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           subtitle: const Text('Logged In'),
                           trailing: TextButton(
                             child: const Text('LOGOUT'),
-                            onPressed: () => _logout('lidl'),
+                            onPressed: () => _logout(LidlClient.dbKey),
                           ),
                         ),
                         const Divider(height: 1),
@@ -283,7 +289,10 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                             );
                             final db = context.read<DatabaseService>();
-                            final message = await _fetchReceipts('lidl', db);
+                            final message = await _fetchReceipts(
+                              LidlClient.dbKey,
+                              db,
+                            );
                             if (!mounted) return;
                             if (message != null) {
                               ScaffoldMessenger.of(
@@ -302,13 +311,15 @@ class _SettingsPageState extends State<SettingsPage> {
                             await context
                                 .read<DatabaseService>()
                                 .updateLastFetchDateTime(
-                                  retailer: 'lidl',
+                                  retailer: LidlClient.dbKey,
                                   dateTime: DateTime.fromMillisecondsSinceEpoch(
                                     0,
                                     isUtc: true,
                                   ),
                                 ),
-                            _retailerManager.getClient('lidl')?.lastFetch =
+                            _retailerManager
+                                    .getClient(LidlClient.dbKey)
+                                    ?.lastFetch =
                                 DateTime.fromMillisecondsSinceEpoch(
                                   0,
                                   isUtc: true,
@@ -319,7 +330,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ListTile(
                           leading: const Icon(Icons.delete_forever),
                           title: const Text('Purge Lidl Receipts'),
-                          onTap: () => _purgeRetailerReceipts('lidl'),
+                          onTap: () => _purgeRetailerReceipts(LidlClient.dbKey),
                         ),
                       ],
                     )
@@ -328,12 +339,12 @@ class _SettingsPageState extends State<SettingsPage> {
                       title: const Text('Lidl'),
                       subtitle: const Text('Not logged in'),
                       trailing: const Icon(Icons.login),
-                      onTap: () => _login('Lidl'),
+                      onTap: () => _login(LidlClient.dbKey),
                     ),
             ),
           if (enableSpolem)
             Card(
-              child: _retailerManager.isLoggedIn('spolem')
+              child: _retailerManager.isLoggedIn(SpolemClient.dbKey)
                   ? Column(
                       children: [
                         ListTile(
@@ -342,7 +353,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           subtitle: const Text('Logged In'),
                           trailing: TextButton(
                             child: const Text('LOGOUT'),
-                            onPressed: () => _logout('spolem'),
+                            onPressed: () => _logout(SpolemClient.dbKey),
                           ),
                         ),
                         const Divider(height: 1),
@@ -356,7 +367,10 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                             );
                             final db = context.read<DatabaseService>();
-                            final message = await _fetchReceipts('spolem', db);
+                            final message = await _fetchReceipts(
+                              SpolemClient.dbKey,
+                              db,
+                            );
                             if (!mounted) return;
                             if (message != null) {
                               ScaffoldMessenger.of(
@@ -375,13 +389,15 @@ class _SettingsPageState extends State<SettingsPage> {
                             await context
                                 .read<DatabaseService>()
                                 .updateLastFetchDateTime(
-                                  retailer: 'spolem',
+                                  retailer: SpolemClient.dbKey,
                                   dateTime: DateTime.fromMillisecondsSinceEpoch(
                                     0,
                                     isUtc: true,
                                   ),
                                 ),
-                            _retailerManager.getClient('spolem')?.lastFetch =
+                            _retailerManager
+                                    .getClient(SpolemClient.dbKey)
+                                    ?.lastFetch =
                                 DateTime.fromMillisecondsSinceEpoch(
                                   0,
                                   isUtc: true,
@@ -392,7 +408,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         ListTile(
                           leading: const Icon(Icons.delete_forever),
                           title: const Text('Purge Społem Receipts'),
-                          onTap: () => _purgeRetailerReceipts('spolem'),
+                          onTap: () =>
+                              _purgeRetailerReceipts(SpolemClient.dbKey),
                         ),
                       ],
                     )
@@ -401,7 +418,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       title: const Text('Społem'),
                       subtitle: const Text('Not logged in'),
                       trailing: const Icon(Icons.login),
-                      onTap: () => _login('Społem'),
+                      onTap: () => _login(SpolemClient.dbKey),
                     ),
             ),
         ],

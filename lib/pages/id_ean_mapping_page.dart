@@ -3,6 +3,9 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:provider/provider.dart';
 import 'package:receipts/src/rust/api/database.dart';
 import 'package:receipts/src/rust/api/receipts.dart';
+import 'package:receipts/src/rust/api/retailers/biedronka.dart';
+import 'package:receipts/src/rust/api/retailers/lidl.dart';
+import 'package:receipts/src/rust/api/retailers/spolem.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 
 class IdEanMappingPage extends StatefulWidget {
@@ -130,9 +133,9 @@ class _IdEanMappingPageState extends State<IdEanMappingPage> {
                         for (final r in receipts) {
                           final rStore = r.store.when(
                             other: (name) => name.toLowerCase(),
-                            biedronka: (_) => 'biedronka',
-                            lidl: (_) => 'lidl',
-                            spolem: (_) => 'spolem',
+                            biedronka: (_) => BiedronkaClient.dbKey,
+                            lidl: (_) => LidlClient.dbKey,
+                            spolem: (_) => SpolemClient.dbKey,
                           );
                           if (rStore == _selectedStore) {
                             for (final item in r.items) {

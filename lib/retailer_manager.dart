@@ -18,7 +18,7 @@ class RetailerManager {
     DatabaseService db,
   ) async {
     // For Społem
-    if (retailer.toLowerCase() == 'spolem') {
+    if (retailer.toLowerCase() == SpolemClient.dbKey) {
       final client = SpolemClient.fromToken(
         token: token,
         lastFetch: await db.getLastFetchDateTime(retailer: retailer),
@@ -35,7 +35,7 @@ class RetailerManager {
         await SecureStorageService().delete('${retailer.toLowerCase()}_token');
         rethrow;
       }
-    } else if (retailer.toLowerCase() == 'biedronka') {
+    } else if (retailer.toLowerCase() == BiedronkaClient.dbKey) {
       final client = BiedronkaClient.fromToken(
         refreshToken: token,
         lastFetch: await db.getLastFetchDateTime(retailer: retailer),
@@ -51,7 +51,7 @@ class RetailerManager {
         await SecureStorageService().delete('${retailer.toLowerCase()}_token');
         rethrow;
       }
-    } else if (retailer.toLowerCase() == 'lidl') {
+    } else if (retailer.toLowerCase() == LidlClient.dbKey) {
       final client = LidlClient.fromToken(
         refreshToken: token,
         lastFetch: await db.getLastFetchDateTime(retailer: retailer),
@@ -75,15 +75,15 @@ class RetailerManager {
     // Społem
     final spolemToken = await SecureStorageService().read('spolem_token');
     if (spolemToken != null) {
-      await loginRetailer('spolem', spolemToken, db);
+      await loginRetailer(SpolemClient.dbKey, spolemToken, db);
     }
     final biedronkaToken = await SecureStorageService().read('biedronka_token');
     if (biedronkaToken != null) {
-      await loginRetailer('biedronka', biedronkaToken, db);
+      await loginRetailer(BiedronkaClient.dbKey, biedronkaToken, db);
     }
     final lidlToken = await SecureStorageService().read('lidl_token');
     if (lidlToken != null) {
-      await loginRetailer('lidl', lidlToken, db);
+      await loginRetailer(LidlClient.dbKey, lidlToken, db);
     }
   }
 

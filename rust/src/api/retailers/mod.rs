@@ -32,6 +32,9 @@ pub enum FetchError {
 
 pub trait ReceiptProvider {
     #[frb(sync, getter)]
+    fn get_db_key() -> String;
+
+    #[frb(sync, getter)]
     fn get_last_fetch(&self) -> Option<DateTime<Utc>>;
     #[frb(sync, setter)]
     fn set_last_fetch(&mut self, value: Option<DateTime<Utc>>);

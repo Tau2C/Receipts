@@ -388,6 +388,11 @@ impl crate::api::retailers::ReceiptProvider for BiedronkaClient {
         log::debug!("Biedronka::set_last_fetch");
         self.last_fetch = value
     }
+
+    #[frb(sync, getter)]
+    fn get_db_key() -> String {
+        "biedronka".to_string()
+    }
 }
 
 impl CardProvider for BiedronkaClient {

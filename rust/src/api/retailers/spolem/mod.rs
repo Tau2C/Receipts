@@ -495,6 +495,11 @@ impl ReceiptProvider for SpolemClient {
         log::debug!("SpolemClient::set_last_fetch {:?}", value);
         self.last_fetch = value
     }
+
+    #[frb(sync, getter)]
+    fn get_db_key() -> String {
+        "spolem".to_string()
+    }
 }
 
 impl CardProvider for SpolemClient {

@@ -444,6 +444,11 @@ impl crate::api::retailers::ReceiptProvider for LidlClient {
         log::debug!("Lidl::set_last_fetch");
         self.last_fetch = value
     }
+
+    #[frb(sync, getter)]
+    fn get_db_key() -> String {
+        "lidl".to_string()
+    }
 }
 
 impl CardProvider for LidlClient {
