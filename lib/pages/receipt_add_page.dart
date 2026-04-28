@@ -596,6 +596,8 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
         child: Column(
           children: [
             TypeAheadField<String>(
+              controller: controller,
+              focusNode: _nameFocus[index],
               suggestionsCallback: _getItemSuggestions,
               itemBuilder: (context, suggestion) {
                 return ListTile(title: Text(suggestion));
@@ -607,8 +609,8 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
               },
               builder: (context, fieldController, focusNode) {
                 return TextFormField(
-                  controller: controller,
-                  focusNode: _nameFocus[index],
+                  controller: fieldController,
+                  focusNode: focusNode,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: 'Item Name ${index + 1}',
