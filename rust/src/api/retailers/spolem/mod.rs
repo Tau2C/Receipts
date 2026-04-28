@@ -13,7 +13,7 @@ use crate::api::retailers::spolem::models::{
 };
 use chrono::{DateTime, Local, NaiveDateTime, Utc};
 use flutter_rust_bridge::frb;
-use log::debug;
+use log::{debug, trace};
 use reqwest::StatusCode;
 use std::str::FromStr;
 
@@ -319,15 +319,16 @@ impl SpolemClient {
 
             for tx in paged_transactions.data {
                 if let Ok(tx_date) = NaiveDateTime::parse_from_str(&tx.date, "%Y-%m-%d %H:%M:%S") {
-                    if date
-                        > tx_date
-                            .and_local_timezone(Local)
-                            .earliest()
-                            .unwrap()
-                            .to_utc()
-                    {
+                    let tx_date = tx_date
+                        .and_local_timezone(Local)
+                        .earliest()
+                        .unwrap()
+                        .to_utc();
+                    if date > tx_date {
+                        trace!("b: {} < {}", tx_date, date);
                         break 'main;
                     }
+                    trace!("c: {} > {}", tx_date, date);
                     debug!("Processing transaction: {}", tx.transaction_id);
                     let transaction = self.fetch_transaction_details(&tx).await?;
                     receipts.push(transaction);
@@ -485,13 +486,13 @@ impl ReceiptProvider for SpolemClient {
 
     #[frb(sync, getter)]
     fn get_last_fetch(&self) -> Option<DateTime<Utc>> {
-        log::debug!("SpolemClient::get_last_fetch");
+        log::debug!("SpolemClient::get_last_fetch {:?}", self.last_fetch);
         self.last_fetch
     }
 
     #[frb(sync, setter)]
     fn set_last_fetch(&mut self, value: Option<DateTime<Utc>>) {
-        log::debug!("SpolemClient::set_last_fetch");
+        log::debug!("SpolemClient::set_last_fetch {:?}", value);
         self.last_fetch = value
     }
 }
