@@ -1,12 +1,11 @@
 use anyhow::anyhow;
 use chrono::{DateTime, Local};
-use fix::aliases::si::Centi;
 use flutter_rust_bridge::frb;
 use scraper::{Html, Selector};
 use serde::Deserialize;
 
 use crate::api::receipts::{
-    self, ReceiptItem, ReceiptItemDiscount, ReceiptPayment, ReceiptTaxSummary,
+    self, Date, ReceiptItem, ReceiptItemDiscount, ReceiptPayment, ReceiptTaxSummary,
 };
 
 #[derive(Debug, Deserialize, Clone)]
@@ -129,8 +128,44 @@ impl TryFrom<Ticket> for receipts::Receipt {
                             .transpose()?;
 
                         let (ean, id) = if i.code_input.len() == 13 {
-                            (Some(i.code_input), None)
+                            let code = i.code_input.clone();
+                            let cs = (10
+                                - ((code
+                                    .char_indices()
+                                    .into_iter()
+                                    .map(|(i, c)| {
+                                        let c = c.to_digit(10).unwrap();
+                                        c + (2 * c * (i % 2) as u32)
+                                    })
+                                    .sum::<u32>()
+                                    - code.chars().last().unwrap().to_digit(10).unwrap())
+                                    % 10))
+                                % 10;
+                            if cs == code.chars().last().unwrap().to_digit(10).unwrap() {
+                                if code.chars().nth(0).unwrap().to_digit(10).unwrap() == 2 {
+                                    match &i.code_input[2..=5] {
+                                        "7635" => (None, Some("5507635".to_string())),
+                                        "2540" => (None, Some("5512540".to_string())),
+                                        code => {
+                                            // TODO: Send unknown codes to server or store them in queue for analysis
+                                            log::warn!(
+                                                "Unknown code format {}, {}",
+                                                i.code_input,
+                                                code
+                                            );
+                                            (None, Some(code.to_string()))
+                                        }
+                                    }
+                                } else {
+                                    log::warn!("EAN {}, cs: {}", i.code_input, cs);
+                                    (Some(i.code_input), None)
+                                }
+                            } else {
+                                log::warn!("Unknown code format {}, cs: {}", i.code_input, cs);
+                                (None, Some(i.code_input))
+                            }
                         } else {
+                            log::warn!("Unknown code format {}, len != 13", i.code_input);
                             (None, Some(i.code_input))
                         };
 
@@ -138,12 +173,12 @@ impl TryFrom<Ticket> for receipts::Receipt {
                             id,
                             ean,
                             i.name,
-                            current_unit_price,
-                            quantity,
+                            current_unit_price.into(),
+                            quantity.into(),
                             Vec::new(),
-                            current_unit_price * quantity,
+                            (current_unit_price * quantity).into(),
                             Some(i.tax_group_name),
-                            tax_rate,
+                            tax_rate.try_into().ok(),
                         ))
                     })
                     .collect::<Result<Vec<_>, _>>()?;
@@ -154,9 +189,9 @@ impl TryFrom<Ticket> for receipts::Receipt {
                     .map(|t| -> Result<ReceiptTaxSummary, Self::Error> {
                         Ok(ReceiptTaxSummary::new(
                             Some(t.tax_group_name.clone()),
-                            t.percentage.replace(",", ".").parse::<f32>()? / 100.0,
-                            t.taxable_amount.replace(",", ".").parse::<f32>()?,
-                            t.amount.replace(",", ".").parse::<f32>()?,
+                            (t.percentage.replace(",", ".").parse::<f32>()? / 100.0).into(),
+                            (t.taxable_amount.replace(",", ".").parse::<f32>()?).into(),
+                            (t.amount.replace(",", ".").parse::<f32>()?).into(),
                         ))
                     })
                     .collect::<Result<Vec<_>, _>>()?;
@@ -165,7 +200,6 @@ impl TryFrom<Ticket> for receipts::Receipt {
                     Some(t) => t.total_amount.replace(",", ".").parse::<f32>()? * 100.0,
                     None => 0.0,
                 };
-                let tax_total = Centi::new(tax_total_val.round() as u32);
 
                 let payments = ticket_native
                     .payments
@@ -177,21 +211,22 @@ impl TryFrom<Ticket> for receipts::Receipt {
                                 "CreditCard" => receipts::ReceiptPaymentType::Card,
                                 _ => receipts::ReceiptPaymentType::StoreCredit,
                             },
-                            p.amount.replace(",", ".").parse::<f32>()?,
+                            p.amount.replace(",", ".").parse::<f32>()?.into(),
                         ))
                     })
                     .collect::<Result<Vec<_>, _>>()?;
 
                 Ok(Self {
                     id: None,
-                    store: receipts::ReceiptStore::Lidl(ticket_native.id),
-                    issued_at,
+                    store: receipts::Store::Lidl,
+                    issued_at: Date(issued_at),
                     items,
-                    total: Centi::new((ticket_native.total_amount * 100.0).round() as u32),
+                    total: ticket_native.total_amount.into(),
                     discounts: Vec::new(),
                     tax_summary,
-                    tax_total,
                     payments,
+                    receipt_id: Some(ticket_native.id),
+                    tax_total: tax_total_val.into(),
                 })
             }
             TicketDetails::HTML(ticket_html) => {
@@ -274,12 +309,12 @@ impl TryFrom<Ticket> for receipts::Receipt {
                                         item.get_id(),
                                         item.get_ean(),
                                         name,
-                                        price,
-                                        count,
+                                        price.into(),
+                                        count.into(),
                                         item.get_discounts(),
-                                        price * count,
+                                        (price * count).into(),
                                         tax,
-                                        item.get_tax_rate(),
+                                        item.get_tax_rate().try_into().ok(),
                                     ));
                                 } else {
                                     // New article starts
@@ -289,10 +324,10 @@ impl TryFrom<Ticket> for receipts::Receipt {
                                         art_id.clone(),
                                         None,
                                         description,
-                                        unit_price,
-                                        quantity,
+                                        unit_price.into(),
+                                        quantity.into(),
                                         Vec::new(),
-                                        unit_price * quantity,
+                                        (unit_price * quantity).into(),
                                         tax_type,
                                         None,
                                     ));
@@ -304,10 +339,10 @@ impl TryFrom<Ticket> for receipts::Receipt {
                                     art_id.clone(),
                                     None,
                                     description,
-                                    unit_price,
-                                    quantity,
+                                    unit_price.into(),
+                                    quantity.into(),
                                     Vec::new(),
-                                    unit_price * quantity,
+                                    (unit_price * quantity).into(),
                                     tax_type,
                                     None,
                                 ));
@@ -334,12 +369,12 @@ impl TryFrom<Ticket> for receipts::Receipt {
                                         item.get_id(),
                                         item.get_ean(),
                                         item.get_name(),
-                                        item.get_price(),
-                                        item.get_count(),
+                                        item.get_price().into(),
+                                        item.get_count().into(),
                                         discounts,
-                                        new_total,
+                                        new_total.into(),
                                         item.get_tax_group(),
-                                        item.get_tax_rate(),
+                                        item.get_tax_rate().try_into().ok(),
                                     );
                                 }
                                 current_item = Some(item);
@@ -384,9 +419,9 @@ impl TryFrom<Ticket> for receipts::Receipt {
                     {
                         tax_summary.push(ReceiptTaxSummary::new(
                             Some(tax_type.to_string()),
-                            percentage,
-                            base_amount,
-                            tax_amount,
+                            percentage.into(),
+                            base_amount.into(),
+                            tax_amount.into(),
                         ));
                         tax_total_f += tax_amount;
                     }
@@ -410,21 +445,22 @@ impl TryFrom<Ticket> for receipts::Receipt {
                                 "Karta płatnicza" => receipts::ReceiptPaymentType::Card,
                                 _ => receipts::ReceiptPaymentType::StoreCredit,
                             },
-                            amount,
+                            amount.into(),
                         ));
                     }
                 }
 
                 Ok(Self {
                     id: None,
-                    store: receipts::ReceiptStore::Lidl(ticket_html.id),
-                    issued_at,
+                    store: receipts::Store::Lidl,
+                    issued_at: Date(issued_at),
                     items,
-                    total: Centi::new((ticket_html.total_amount * 100.0).round() as u32),
+                    total: ticket_html.total_amount.into(),
                     discounts: Vec::new(),
                     tax_summary,
-                    tax_total: Centi::new((tax_total_f * 100.0).round() as u32),
+                    tax_total: tax_total_f.into(),
                     payments,
+                    receipt_id: Some(ticket_html.id),
                 })
             }
             TicketDetails::OTHER(value) => Err(anyhow::anyhow!("Unknown ticket format {}", value)),

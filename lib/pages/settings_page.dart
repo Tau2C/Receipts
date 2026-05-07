@@ -1,22 +1,28 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:receipts/pages/Spolem_login_page.dart';
 import 'package:receipts/pages/biedronka_login_page.dart';
 import 'package:receipts/pages/id_ean_mapping_page.dart';
 import 'package:receipts/pages/lidl_login_page.dart';
+import 'package:receipts/pages/run_custom_sql_page.dart';
 import 'package:receipts/retailer_manager.dart';
 import 'package:receipts/src/rust/api/database.dart';
 import 'package:receipts/src/rust/api/receipts.dart';
 import 'package:receipts/src/rust/api/retailers/biedronka.dart';
 import 'package:receipts/src/rust/api/retailers/lidl.dart';
 import 'package:receipts/src/rust/api/retailers/spolem.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 const bool enableBiedronka = true;
 const bool enableLidl = true;
 const bool enableSpolem = true;
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  final String dbUrl;
+
+  const SettingsPage({super.key, required this.dbUrl});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -120,6 +126,37 @@ class _SettingsPageState extends State<SettingsPage> {
       return 'Fetched and saved ${receipts.length} receipts.';
     } catch (e) {
       return 'Failed to fetch receipts: $e';
+    }
+  }
+
+  Future<void> _exportDatabase() async {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Exporting database...')));
+    try {
+      final db = context.read<DatabaseService>();
+      final downloadDir =
+          await getApplicationDocumentsDirectory(); // Using documents for simplicity/cross-platform
+      final exportedPath = await db.exportDatabase(
+        dbPath: widget.dbUrl.replaceFirst(
+          'sqlite://',
+          '',
+        ), // Pass actual file path
+        destinationDir: downloadDir.path,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Database exported to $exportedPath')),
+      );
+
+      // Offer to share the file
+      await Share.shareXFiles([XFile(exportedPath)]);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to export database: $e')));
     }
   }
 
@@ -421,6 +458,39 @@ class _SettingsPageState extends State<SettingsPage> {
                       onTap: () => _login(SpolemClient.dbKey),
                     ),
             ),
+          if (kDebugMode) ...[
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                'Developer Options',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.code),
+                title: const Text('Run Custom SQL'),
+                subtitle: const Text('Execute arbitrary SQL queries'),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const RunCustomSqlPage(),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.download),
+                title: const Text('Export Database'),
+                subtitle: const Text('Backup database to device storage'),
+                onTap: _exportDatabase,
+              ),
+            ),
+          ],
         ],
       ),
     );

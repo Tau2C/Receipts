@@ -1,0 +1,38 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT tax_group, tax_rate as \"tax_rate!: Price\", sales_value as \"sales_value!: Price\", tax_value as \"tax_value!: Price\"\n            FROM receipt_tax_summaries WHERE receipt_id = ?\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "tax_group",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "tax_rate!: Price",
+        "ordinal": 1,
+        "type_info": "Float"
+      },
+      {
+        "name": "sales_value!: Price",
+        "ordinal": 2,
+        "type_info": "Float"
+      },
+      {
+        "name": "tax_value!: Price",
+        "ordinal": 3,
+        "type_info": "Float"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "d3c3b814811a7e786ba5bcbbceffa265a83c6f2d5548dc01d63e189349da5b07"
+}

@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT payment_type as \"payment_type!: ReceiptPaymentType\", value as \"value!: Price\"\n            FROM receipt_payments WHERE receipt_id = ?\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "payment_type!: ReceiptPaymentType",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "value!: Price",
+        "ordinal": 1,
+        "type_info": "Float"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "7b2815b1b74befd13c3c1cdf9a69b94ffd10608f55670f17b3729dc62d5e249f"
+}

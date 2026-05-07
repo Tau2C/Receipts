@@ -8,7 +8,7 @@ import 'package:system_date_time_format/system_date_time_format.dart';
 class ItemHistoryPage extends StatefulWidget {
   final String? ean;
   final String itemName;
-  final ReceiptStore? store;
+  final Store? store;
   final String? itemId;
 
   const ItemHistoryPage({
@@ -71,12 +71,7 @@ class _ItemHistoryPageState extends State<ItemHistoryPage> {
               final summary = summaries[index];
 
               // Map the store enum back to a string
-              final storeName = summary.store.when(
-                other: (name) => name,
-                biedronka: (_) => 'Biedronka',
-                lidl: (_) => 'Lidl',
-                spolem: (_) => 'Społem',
-              );
+              final storeName = summary.store.toString();
 
               return ListTile(
                 leading: const Icon(Icons.history),

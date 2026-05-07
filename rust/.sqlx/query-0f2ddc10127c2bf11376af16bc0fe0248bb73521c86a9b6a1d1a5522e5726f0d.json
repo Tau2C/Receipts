@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT DISTINCT store as \"store: Store\" FROM receipts",
+  "describe": {
+    "columns": [
+      {
+        "name": "store: Store",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "0f2ddc10127c2bf11376af16bc0fe0248bb73521c86a9b6a1d1a5522e5726f0d"
+}

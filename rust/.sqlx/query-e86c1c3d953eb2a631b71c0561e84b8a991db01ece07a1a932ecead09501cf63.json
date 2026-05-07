@@ -1,10 +1,10 @@
 {
   "db_name": "SQLite",
-  "query": "\n                SELECT payment_type, value\n                FROM receipt_payments WHERE receipt_id = ?\n                ",
+  "query": "SELECT type, value FROM receipt_item_discounts WHERE receipt_item_id = ?",
   "describe": {
     "columns": [
       {
-        "name": "payment_type",
+        "name": "type",
         "ordinal": 0,
         "type_info": "Text"
       },
@@ -22,5 +22,5 @@
       false
     ]
   },
-  "hash": "982aac81c6980169ae5f278e7ccd7859fd9b667a911c6ebca5129a7511b43635"
+  "hash": "e86c1c3d953eb2a631b71c0561e84b8a991db01ece07a1a932ecead09501cf63"
 }

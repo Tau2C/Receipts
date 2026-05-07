@@ -9,7 +9,6 @@ pub struct Card {
     pub id: Option<i64>,
     pub name: String,
     pub number: String,
-    #[sqlx(default)]
     pub enabled: bool,
 }
 

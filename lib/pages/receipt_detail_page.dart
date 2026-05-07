@@ -24,13 +24,7 @@ class _ReceiptDetailPageState extends State<ReceiptDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Extract the store name string from the sealed ReceiptStore type
-    final storeName = _receipt.store.when(
-      other: (name) => name,
-      biedronka: (_) => 'Biedronka',
-      lidl: (_) => 'Lidl',
-      spolem: (_) => 'Społem',
-    );
+    final storeName = _receipt.store.toString();
 
     final patterns = SystemDateTimeFormat.of(context);
 
@@ -93,7 +87,7 @@ class _ReceiptDetailPageState extends State<ReceiptDetailPage> {
                                 ),
                               );
                             }
-                          : null, // null disables the tap effect if no EAN
+                          : null,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Column(

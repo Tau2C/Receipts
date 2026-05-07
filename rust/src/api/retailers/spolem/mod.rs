@@ -384,7 +384,8 @@ impl ReceiptProvider for SpolemClient {
             .map(|t| {
                 receipts::Receipt::new(
                     None,
-                    receipts::ReceiptStore::Spolem(t.receipt_id.clone()),
+                    receipts::Store::Spolem,
+                    Some(t.receipt_id.clone()),
                     NaiveDateTime::parse_from_str(&t.date, "%Y-%m-%d %H:%M:%S")
                         .map_err(|e| {
                             log::error!("Failed to parse date: {} | {}", e, t.date);
@@ -432,7 +433,7 @@ impl ReceiptProvider for SpolemClient {
                                 id,
                                 ean,
                                 name,
-                                (i.total_value
+                                ((i.total_value
                                     / f64::from_str(&i.amount)
                                         .map_err(|e| {
                                             log::error!(
@@ -445,7 +446,8 @@ impl ReceiptProvider for SpolemClient {
                                                 line: line!(),
                                             }
                                         })
-                                        .unwrap()) as f32,
+                                        .unwrap()) as f32)
+                                    .into(),
                                 f32::from_str(&i.amount)
                                     .map_err(|e| {
                                         log::error!(
@@ -458,9 +460,10 @@ impl ReceiptProvider for SpolemClient {
                                             line: line!(),
                                         }
                                     })
-                                    .unwrap(),
+                                    .unwrap()
+                                    .into(),
                                 Vec::new(),
-                                i.total_value as f32,
+                                (i.total_value as f32).into(),
                                 None,
                                 None,
                             )
@@ -474,10 +477,11 @@ impl ReceiptProvider for SpolemClient {
                                 line: line!(),
                             }
                         })
-                        .unwrap(),
+                        .unwrap()
+                        .into(),
                     Vec::new(),
                     Vec::new(),
-                    0.0,
+                    0.0.into(),
                     Vec::new(),
                 )
             })

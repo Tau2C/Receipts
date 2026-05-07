@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO item_id_ean_map (store, item_id, ean)\n        VALUES (?, ?, ?)\n        ON CONFLICT (store, item_id) DO UPDATE SET ean = EXCLUDED.ean\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "bc86a17d274e7c134d5a3d44ed2a450c8a2030cfc181da966ca28a147eb6f9b9"
+}

@@ -1,0 +1,80 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT\n                ri.id, ri.item_id, ri.ean, ri.name, ri.price as \"price: Price\", ri.count as \"count: Quantity\", ri.total as \"total: Price\", ri.tax_group, ri.tax_rate as \"tax_rate?: Price\", r.issued_at as \"issued_at: Date\",\n                r.store as \"store!: Store\"\n            FROM receipt_items ri\n            JOIN receipts r ON r.id = ri.receipt_id\n            WHERE ri.ean = ?\n            ORDER BY r.issued_at DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "item_id",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "ean",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "name",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "price: Price",
+        "ordinal": 4,
+        "type_info": "Float"
+      },
+      {
+        "name": "count: Quantity",
+        "ordinal": 5,
+        "type_info": "Float"
+      },
+      {
+        "name": "total: Price",
+        "ordinal": 6,
+        "type_info": "Float"
+      },
+      {
+        "name": "tax_group",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "tax_rate?: Price",
+        "ordinal": 8,
+        "type_info": "Float"
+      },
+      {
+        "name": "issued_at: Date",
+        "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "store!: Store",
+        "ordinal": 10,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "91d9d9765b7d417afba0cba350eec4a7e9681b86afa282f6ba59de6510f11043"
+}

@@ -76,19 +76,9 @@ class _ReceiptsPageState extends State<ReceiptsPage> {
         ),
         const SizedBox(height: 12),
         ...receipts.map((receipt) {
-          final storeName = receipt.store.when(
-            other: (name) => name,
-            biedronka: (_) => "Biedronka",
-            lidl: (_) => "Lidl",
-            spolem: (_) => "Społem",
-          );
+          final storeName = receipt.store.toString();
 
-          final retailerId = receipt.store.when(
-            other: (_) => null,
-            biedronka: (id) => id,
-            lidl: (id) => id,
-            spolem: (id) => id,
-          );
+          final retailerId = receipt.receiptId;
 
           final patterns = SystemDateTimeFormat.of(context);
 

@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT ean\n        FROM item_id_ean_map\n        WHERE store = ? AND item_id = ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "ean",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "ae1518010ede949b9ec6aa17541da428d7a47e5c7eeeb9c2c92ebcc4e644ec21"
+}

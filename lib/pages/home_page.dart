@@ -4,7 +4,9 @@ import 'package:receipts/pages/receipts_page.dart';
 import 'package:receipts/pages/settings_page.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  final String dbUrl;
+
+  const HomePage({super.key, required this.dbUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +30,7 @@ class HomePage extends StatelessWidget {
         subtitle: 'Adjust preferences and app behavior',
         icon: Icons.settings_rounded,
         color: const Color(0xFF2C3E50),
-        builder: (_) => const SettingsPage(),
+        builder: (_) => SettingsPage(dbUrl: dbUrl),
       ),
     ];
 

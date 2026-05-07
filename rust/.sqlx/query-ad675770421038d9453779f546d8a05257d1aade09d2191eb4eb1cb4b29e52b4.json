@@ -1,20 +1,20 @@
 {
   "db_name": "SQLite",
-  "query": "\n            SELECT id, store_type, store_value, issued_at, total, tax_total\n            FROM receipts\n            ORDER BY issued_at DESC\n            ",
+  "query": "\n            SELECT id as \"id!: u32\", store as \"store!: Store\", receipt_id, issued_at, total as \"total!: Price\", tax_total as \"tax_total!: Price\"\n            FROM receipts\n            ORDER BY issued_at DESC\n            ",
   "describe": {
     "columns": [
       {
-        "name": "id",
+        "name": "id!: u32",
         "ordinal": 0,
         "type_info": "Integer"
       },
       {
-        "name": "store_type",
+        "name": "store!: Store",
         "ordinal": 1,
         "type_info": "Text"
       },
       {
-        "name": "store_value",
+        "name": "receipt_id",
         "ordinal": 2,
         "type_info": "Text"
       },
@@ -24,12 +24,12 @@
         "type_info": "Text"
       },
       {
-        "name": "total",
+        "name": "total!: Price",
         "ordinal": 4,
         "type_info": "Float"
       },
       {
-        "name": "tax_total",
+        "name": "tax_total!: Price",
         "ordinal": 5,
         "type_info": "Float"
       }
@@ -38,13 +38,13 @@
       "Right": 0
     },
     "nullable": [
-      false,
       true,
+      false,
       true,
       false,
       false,
       true
     ]
   },
-  "hash": "8f3406ca4cac2e5a4e3b9f4d83f4cede5a4d3cf14665d566ed76d38e5d53ffa5"
+  "hash": "ad675770421038d9453779f546d8a05257d1aade09d2191eb4eb1cb4b29e52b4"
 }

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM item_id_ean_map\n        WHERE\n        store = ? AND item_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "01a23d7a2972d0b3df149ca6b2bddb37edc00b71860e70cdd2a89062b9ab0485"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO retailers (name, last_fetch_date_time)\n        VALUES (?, ?)\n        ON CONFLICT(name)\n        DO UPDATE SET last_fetch_date_time = excluded.last_fetch_date_time\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "7727ea592ca28de664a6eec174055a58c7b34d935f471c23db191eda9a8c5625"
+}

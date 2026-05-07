@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT store as \"store: Store\", item_id, ean FROM item_id_ean_map",
+  "describe": {
+    "columns": [
+      {
+        "name": "store: Store",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "item_id",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "ean",
+        "ordinal": 2,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "97cd77d02eb3ae602d28bbca80882cfc91f83f86665ecf11d3e53302f0d13a60"
+}

@@ -3,9 +3,6 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:provider/provider.dart';
 import 'package:receipts/src/rust/api/database.dart';
 import 'package:receipts/src/rust/api/receipts.dart';
-import 'package:receipts/src/rust/api/retailers/biedronka.dart';
-import 'package:receipts/src/rust/api/retailers/lidl.dart';
-import 'package:receipts/src/rust/api/retailers/spolem.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 
 class IdEanMappingPage extends StatefulWidget {
@@ -38,7 +35,7 @@ class _IdEanMappingPageState extends State<IdEanMappingPage> {
     });
   }
 
-  void _deleteMapping(String store, String itemId) async {
+  void _deleteMapping(Store store, String itemId) async {
     await context.read<DatabaseService>().deleteItemIdEanMap(
       store: store,
       itemId: itemId,
@@ -49,7 +46,7 @@ class _IdEanMappingPageState extends State<IdEanMappingPage> {
   void _addMapping() async {
     if (_formKey.currentState!.validate()) {
       await context.read<DatabaseService>().insertItemIdEanMap(
-        store: _selectedStore!,
+        store: Store.fromString(_selectedStore!),
         itemId: _itemIdController.text,
         ean: _eanController.text,
       );
@@ -91,7 +88,7 @@ class _IdEanMappingPageState extends State<IdEanMappingPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    FutureBuilder<List<String>>(
+                    FutureBuilder<List<Store>>(
                       future: context.read<DatabaseService>().getStores(),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
@@ -108,8 +105,8 @@ class _IdEanMappingPageState extends State<IdEanMappingPage> {
                           items: stores
                               .map(
                                 (store) => DropdownMenuItem(
-                                  value: store,
-                                  child: Text(store),
+                                  value: store.toString(),
+                                  child: Text(store.toString()),
                                 ),
                               )
                               .toList(),
@@ -130,14 +127,9 @@ class _IdEanMappingPageState extends State<IdEanMappingPage> {
                         final db = context.read<DatabaseService>();
                         final receipts = await db.receipts;
                         final Set<String> ids = {};
+                        final selectedStore = Store.fromString(_selectedStore!);
                         for (final r in receipts) {
-                          final rStore = r.store.when(
-                            other: (name) => name.toLowerCase(),
-                            biedronka: (_) => BiedronkaClient.dbKey,
-                            lidl: (_) => LidlClient.dbKey,
-                            spolem: (_) => SpolemClient.dbKey,
-                          );
-                          if (rStore == _selectedStore) {
+                          if (r.store == selectedStore) {
                             for (final item in r.items) {
                               if (item.id != null &&
                                   item.id!.toLowerCase().contains(
@@ -146,6 +138,8 @@ class _IdEanMappingPageState extends State<IdEanMappingPage> {
                                 ids.add(item.id!);
                               }
                             }
+                          } else {
+                            debugPrint("$selectedStore != ${r.store}");
                           }
                         }
                         return ids.toList();

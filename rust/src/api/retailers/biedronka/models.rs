@@ -1,11 +1,10 @@
 use chrono::DateTime;
-use fix::aliases::si::Centi;
 use flutter_rust_bridge::frb;
 use rust_decimal::prelude::Zero;
 use serde::Deserialize;
 
 use crate::api::receipts::{
-    self, ReceiptItemDiscount, ReceiptPayment, ReceiptPaymentType, ReceiptTaxSummary,
+    self, Date, ReceiptItemDiscount, ReceiptPayment, ReceiptPaymentType, ReceiptTaxSummary,
 };
 
 #[derive(Debug, Deserialize)]
@@ -77,8 +76,8 @@ impl From<Receipt> for receipts::Receipt {
         log::debug!("biedronka::Receipt::from");
         Self {
             id: None,
-            store: receipts::ReceiptStore::Biedronka(value.id),
-            issued_at: DateTime::parse_from_rfc3339(&value.date).unwrap().to_utc(),
+            store: receipts::Store::Biedronka,
+            issued_at: Date(DateTime::parse_from_rfc3339(&value.date).unwrap().to_utc()),
             items: value
                 .items
                 .into_iter()
@@ -93,20 +92,20 @@ impl From<Receipt> for receipts::Receipt {
                         id,
                         ean,
                         i.name,
-                        i.unit_price,
-                        i.quantity,
+                        i.unit_price.into(),
+                        i.quantity.into(),
                         if i.total_discount.is_zero() {
                             Vec::new()
                         } else {
                             vec![ReceiptItemDiscount::Value(i.total_discount)]
                         },
-                        i.total_price,
+                        i.total_price.into(),
                         Some(i.vat_fiscal_code),
-                        Some(i.vat_rate as f32 / 100.0),
+                        Some((i.vat_rate as f32 / 100.0).into()),
                     )
                 })
                 .collect(),
-            total: Centi::new((value.total_price * 100.0) as u32),
+            total: value.total_price.into(),
             discounts: Vec::new(),
             tax_summary: value
                 .tax_summaries
@@ -114,13 +113,13 @@ impl From<Receipt> for receipts::Receipt {
                 .map(|t| {
                     ReceiptTaxSummary::new(
                         Some(t.vat_fiscal_code),
-                        (t.vat_rate as f32) / 100.0,
-                        t.sale_value + t.tax_value,
-                        t.tax_value,
+                        (t.vat_rate as f32 / 100.0).into(),
+                        (t.sale_value + t.tax_value).into(),
+                        t.tax_value.into(),
                     )
                 })
                 .collect(),
-            tax_total: Centi::new((value.total_tax * 100.0) as u32),
+            tax_total: value.total_tax.into(),
             payments: value
                 .payments
                 .into_iter()
@@ -137,9 +136,10 @@ impl From<Receipt> for receipts::Receipt {
                         "Cash" => ReceiptPaymentType::Cash,
                         _ => ReceiptPaymentType::Other(p.name),
                     };
-                    ReceiptPayment::new(payment_type, p.value)
+                    ReceiptPayment::new(payment_type, p.value.into())
                 })
                 .collect(),
+            receipt_id: Some(value.id),
         }
     }
 }

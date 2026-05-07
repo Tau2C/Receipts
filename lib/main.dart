@@ -46,7 +46,7 @@ Future<void> main() async {
     runApp(
       MultiProvider(
         providers: [Provider<DatabaseService>.value(value: databaseService)],
-        child: const SDTFScope(child: MyApp()),
+        child: SDTFScope(child: MyApp(dbUrl: dbUrl)),
       ),
     );
   } catch (e) {
@@ -55,7 +55,9 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String dbUrl;
+
+  const MyApp({super.key, required this.dbUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +67,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0C7D69)),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: HomePage(dbUrl: dbUrl),
     );
   }
 }

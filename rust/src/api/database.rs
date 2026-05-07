@@ -1,4 +1,4 @@
-use crate::api::receipts::{Receipt, ReceiptItemSummary, ReceiptStore};
+use crate::api::receipts::{Receipt, ReceiptItemSummary, Store};
 use crate::db;
 use crate::{api::card::Card, db::LastFetchDateTimeErrors};
 use anyhow::Result;
@@ -9,7 +9,7 @@ use sqlx::SqlitePool;
 #[frb]
 #[derive(Debug, Clone)]
 pub struct ItemIdEanMap {
-    pub store: String,
+    pub store: Store,
     pub item_id: String,
     pub ean: String,
 }
@@ -104,7 +104,7 @@ impl DatabaseService {
         Ok(receipts)
     }
 
-    pub async fn insert_receipt(&mut self, receipt: Receipt) -> Result<Receipt> {
+    pub async fn insert_receipt(&mut self, receipt: Receipt) -> Result<i64> {
         log::debug!("Inserting new receipt");
         self.receipts_cache = None;
         db::insert_receipt(&self.pool, receipt)
@@ -112,7 +112,7 @@ impl DatabaseService {
             .map_err(|e| e.into())
     }
 
-    pub async fn insert_receipts(&mut self, receipts: Vec<Receipt>) -> Result<Vec<Receipt>> {
+    pub async fn insert_receipts(&mut self, receipts: Vec<Receipt>) -> Result<usize> {
         log::debug!("Inserting multiple receipts (count: {})", receipts.len());
         self.receipts_cache = None;
         db::insert_receipts(&self.pool, receipts)
@@ -146,7 +146,7 @@ impl DatabaseService {
     pub async fn get_item(
         &self,
         ean: Option<String>,
-        store: Option<ReceiptStore>,
+        store: Option<Store>,
         item_id: Option<String>,
     ) -> Result<Vec<ReceiptItemSummary>> {
         log::debug!(
@@ -169,7 +169,7 @@ impl DatabaseService {
 
     pub async fn insert_item_id_ean_map(
         &self,
-        store: &str,
+        store: Store,
         item_id: &str,
         ean: &str,
     ) -> Result<()> {
@@ -179,34 +179,24 @@ impl DatabaseService {
             item_id,
             ean
         );
-        db::insert_item_id_ean_map(
-            &self.pool,
-            &match store {
-                "lidl" | "Lidl" => ReceiptStore::Lidl(String::new()),
-                "spolem" | "Społem" => ReceiptStore::Spolem(String::new()),
-                "biedronka" | "Biedronka" => ReceiptStore::Biedronka(String::new()),
-                _ => ReceiptStore::Other(store.to_string()),
-            },
-            item_id,
-            ean,
-        )
-        .await
-        .map_err(anyhow::Error::from)
+        db::insert_item_id_ean_map(&self.pool, &store, item_id, ean)
+            .await
+            .map_err(anyhow::Error::from)
     }
 
-    pub async fn delete_item_id_ean_map(&self, store: &str, item_id: &str) -> Result<()> {
+    pub async fn delete_item_id_ean_map(&self, store: Store, item_id: &str) -> Result<()> {
         log::debug!(
             "Deleting item_id_ean_map for store: {}, item_id: {}",
             store,
             item_id
         );
 
-        db::delete_item_id_ean_map(&self.pool, store, item_id)
+        db::delete_item_id_ean_map(&self.pool, &store, item_id)
             .await
             .map_err(anyhow::Error::from)
     }
 
-    pub async fn get_stores(&self) -> Result<Vec<String>> {
+    pub async fn get_stores(&self) -> Result<Vec<Store>> {
         log::debug!("Get stores");
         db::get_stores(&self.pool)
             .await
@@ -219,4 +209,28 @@ impl DatabaseService {
             .await
             .map_err(anyhow::Error::from)
     }
+
+    pub async fn execute_custom_sql(&self, sql: String) -> Result<SqlExecutionResult> {
+        log::debug!("Running custom query: {}", sql);
+        db::execute_custom_sql(&self.pool, sql)
+            .await
+            .map_err(anyhow::Error::from)
+    }
+
+    pub async fn export_database(
+        &self,
+        db_path: String,
+        destination_dir: String,
+    ) -> Result<String> {
+        log::debug!("Exporting database from {} to {}", db_path, destination_dir);
+        db::export_database(db_path, destination_dir)
+            .await
+            .map_err(anyhow::Error::from)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum SqlExecutionResult {
+    RowsAffected(u64),
+    Select(Vec<Vec<String>>, Vec<String>),
 }

@@ -49,8 +49,9 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
   bool _didInit = false;
 
   final List<FocusNode> _paymentValueFocus = [];
-  final TextEditingController _dateController = TextEditingController();
   final TextEditingController _storeController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _totalController = TextEditingController();
 
   @override
   void initState() {
@@ -72,8 +73,9 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
 
   @override
   void dispose() {
-    _dateController.dispose();
     _storeController.dispose();
+    _dateController.dispose();
+    _totalController.dispose();
     for (final c in _itemControllers) {
       c.dispose();
     }
@@ -186,12 +188,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
       final receipts = await db.receipts;
 
       for (final r in receipts) {
-        final storeName = r.store.when(
-          other: (name) => name,
-          biedronka: (_) => 'Biedronka',
-          lidl: (_) => 'Lidl',
-          spolem: (_) => 'Społem',
-        );
+        final storeName = r.store.toString();
         _cachedStores.add(storeName);
 
         for (final item in r.items) {
@@ -294,10 +291,20 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
     });
   }
 
-  void _addTaxSummary() {
+  void _addTaxSummary({
+    String? taxGroup,
+    double taxRate = 0.0,
+    double salesValue = 0.0,
+    double taxValue = 0.0,
+  }) {
     setState(() {
       _taxSummary.add(
-        _ReceiptTaxSummaryData(taxRate: 0.0, salesValue: 0.0, taxValue: 0.0),
+        _ReceiptTaxSummaryData(
+          taxGroup: taxGroup,
+          taxRate: taxRate,
+          salesValue: salesValue,
+          taxValue: taxValue,
+        ),
       );
       _taxSummaryGroupFocus.add(FocusNode());
       _taxSummaryRateFocus.add(FocusNode());
@@ -518,16 +525,16 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
     if (text.isEmpty) return;
     _selectedStoreName = text;
 
-    ReceiptStore receiptStore;
+    Store receiptStore;
     final lowerName = _selectedStoreName.toLowerCase();
     if (lowerName.contains('biedronka')) {
-      receiptStore = ReceiptStore.biedronka(_selectedStoreName);
+      receiptStore = Store.biedronka();
     } else if (lowerName.contains('lidl')) {
-      receiptStore = ReceiptStore.lidl(_selectedStoreName);
+      receiptStore = Store.lidl();
     } else if (lowerName.contains('społem') || lowerName.contains('spolem')) {
-      receiptStore = ReceiptStore.spolem(_selectedStoreName);
+      receiptStore = Store.spolem();
     } else {
-      receiptStore = ReceiptStore.other(_selectedStoreName);
+      receiptStore = Store.other(_selectedStoreName);
     }
 
     final taxTotal = _taxSummary.fold<double>(
@@ -535,7 +542,7 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
       (sum, item) => sum + item.taxValue,
     );
 
-    var receiptTotal = _total;
+    double receiptTotal = double.tryParse(_totalController.text.trim()) ?? 0.0;
     if (receiptTotal == 0.0) {
       receiptTotal = _items.fold<double>(0.0, (sum, item) => sum + item.total);
     }
@@ -957,11 +964,13 @@ class _ReceiptAddPageState extends State<ReceiptAddPage> {
                   onTap: () => _selectDate(context),
                 ),
                 TextFormField(
+                  controller: _totalController,
                   decoration: const InputDecoration(labelText: 'Total Amount'),
                   textInputAction: TextInputAction.done,
                   keyboardType: TextInputType.number,
                   onSaved: (value) {
                     _total = double.tryParse(value ?? '') ?? 0;
+                    _totalController.text = value ?? '';
                   },
                   onFieldSubmitted: (_) {
                     FocusScope.of(context).unfocus();
