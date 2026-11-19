@@ -1,0 +1,30 @@
+.direnv/
+
+# Rust
+target/
+
+# Flutter & Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.pub-cache/
+.pub/
+
+# IDE & Editors
+.idea/
+.vscode/
+.zed/
+*.iml
+
+# Environment & local tools
+.direnv/
+.env
+*.local
+*.log
+*.tmp
+
+# Databases
+*.db
+*.db-shm
+*.db-wal
