@@ -1,13 +1,12 @@
 use std::sync::Arc;
-use wasmi::{
-    Caller, Config, Engine, Instance, Linker, Memory, Module, Store, TypedFunc,
-};
+use wasmi::{Caller, Config, Engine, Instance, Linker, Memory, Module, Store, TypedFunc};
 
 use crate::dto::{FetchReceiptsRequest, PluginAuthPayload, PluginManifest, PluginReceipt};
 use crate::error::PluginError;
 
-pub type HttpCallback =
-    Arc<dyn Fn(&str, &str, &[(String, String)], &[u8]) -> Result<(u16, Vec<u8>), String> + Send + Sync>;
+pub type HttpCallback = Arc<
+    dyn Fn(&str, &str, &[(String, String)], &[u8]) -> Result<(u16, Vec<u8>), String> + Send + Sync,
+>;
 
 #[derive(Default, Clone)]
 pub struct PluginHostConfig {
@@ -40,9 +39,7 @@ impl PluginHost {
         })
     }
 
-    fn init_store_and_instance(
-        &self,
-    ) -> Result<(Store<HostState>, Instance), PluginError> {
+    fn init_store_and_instance(&self) -> Result<(Store<HostState>, Instance), PluginError> {
         let mut store = Store::new(
             &self.engine,
             HostState {
@@ -114,8 +111,7 @@ impl PluginHost {
             },
         )?;
 
-        let instance = linker
-            .instantiate_and_start(&mut store, &self.module)?;
+        let instance = linker.instantiate_and_start(&mut store, &self.module)?;
 
         let memory = instance
             .get_memory(&store, "memory")
@@ -170,16 +166,23 @@ impl PluginHost {
         let req_json = serde_json::to_vec(req)?;
 
         let auth_ptr = alloc_func.call(&mut store, auth_json.len() as i32)?;
-        memory.write(&mut store, auth_ptr as usize, &auth_json)
+        memory
+            .write(&mut store, auth_ptr as usize, &auth_json)
             .map_err(|e| PluginError::MemoryAccess(e.to_string()))?;
 
         let req_ptr = alloc_func.call(&mut store, req_json.len() as i32)?;
-        memory.write(&mut store, req_ptr as usize, &req_json)
+        memory
+            .write(&mut store, req_ptr as usize, &req_json)
             .map_err(|e| PluginError::MemoryAccess(e.to_string()))?;
 
         let result_packed = fetch_func.call(
             &mut store,
-            (auth_ptr, auth_json.len() as i32, req_ptr, req_json.len() as i32),
+            (
+                auth_ptr,
+                auth_json.len() as i32,
+                req_ptr,
+                req_json.len() as i32,
+            ),
         )?;
 
         // Free input buffers
@@ -255,7 +258,8 @@ mod tests {
         );
 
         let wasm_bytes = wat::parse_str(wat).expect("WAT parsing failed");
-        let host = PluginHost::new(&wasm_bytes, PluginHostConfig::default()).expect("Host creation failed");
+        let host = PluginHost::new(&wasm_bytes, PluginHostConfig::default())
+            .expect("Host creation failed");
 
         let manifest = host.get_manifest().expect("Manifest failed");
         assert_eq!(manifest.retailer, "Lidl");
@@ -280,7 +284,10 @@ mod tests {
         assert_eq!(receipts[0].store, "Lidl");
         assert_eq!(receipts[0].items.len(), 2);
 
-        let (pds_receipt, pds_items) = receipts[0].clone().to_pds_records().expect("PDS conversion failed");
+        let (pds_receipt, pds_items) = receipts[0]
+            .clone()
+            .to_pds_records()
+            .expect("PDS conversion failed");
         assert_eq!(pds_receipt.store, "Lidl");
         assert_eq!(pds_items.len(), 2);
         assert_eq!(pds_items[0].name, "Butter");
