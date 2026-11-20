@@ -12,25 +12,25 @@ void main() {
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (MethodCall call) async {
-      switch (call.method) {
-        case 'connect':
-          return true;
-        case 'disconnect':
-          return true;
-        case 'isConnected':
-          return true;
-        case 'isReady':
-          return true;
-        case 'executeRawRequest':
-          return '{"status":"Success"}';
-        case 'isPdsInstalled':
-          return true;
-        case 'installPdsApk':
-          return true;
-        default:
-          return null;
-      }
-    });
+          switch (call.method) {
+            case 'connect':
+              return true;
+            case 'disconnect':
+              return true;
+            case 'isConnected':
+              return true;
+            case 'isReady':
+              return true;
+            case 'executeRawRequest':
+              return '{"status":"Success"}';
+            case 'isPdsInstalled':
+              return true;
+            case 'installPdsApk':
+              return true;
+            default:
+              return null;
+          }
+        });
   });
 
   tearDown(() {
@@ -38,8 +38,9 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
-  testWidgets('Receipts dashboard displays total spend and receipt items',
-      (WidgetTester tester) async {
+  testWidgets('Receipts dashboard displays total spend and receipt items', (
+    WidgetTester tester,
+  ) async {
     final viewModel = ReceiptsViewModel();
     final receipt = Receipt(
       id: 'rcpt_001',
@@ -60,9 +61,7 @@ void main() {
     await viewModel.addReceipt(receipt, [item]);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: ReceiptsListView(viewModel: viewModel),
-      ),
+      MaterialApp(home: ReceiptsListView(viewModel: viewModel)),
     );
 
     expect(find.text('PDS Receipts'), findsOneWidget);

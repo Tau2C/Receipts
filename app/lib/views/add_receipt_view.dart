@@ -28,12 +28,17 @@ class _AddReceiptViewState extends State<AddReceiptView> {
 
   void _addItem() {
     setState(() {
-      _items.add(_ItemDraft(name: '', quantity: 1, unit: 'pcs', unitPrice: 0.0));
+      _items.add(
+        _ItemDraft(name: '', quantity: 1, unit: 'pcs', unitPrice: 0.0),
+      );
     });
   }
 
   double get _totalAmount {
-    return _items.fold(0.0, (sum, item) => sum + (item.quantity * item.unitPrice));
+    return _items.fold(
+      0.0,
+      (sum, item) => sum + (item.quantity * item.unitPrice),
+    );
   }
 
   Future<void> _save() async {
@@ -72,12 +77,7 @@ class _AddReceiptViewState extends State<AddReceiptView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Receipt'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _save,
-          ),
-        ],
+        actions: [IconButton(icon: const Icon(Icons.check), onPressed: _save)],
       ),
       body: Form(
         key: _formKey,
@@ -90,7 +90,8 @@ class _AddReceiptViewState extends State<AddReceiptView> {
                 labelText: 'Store Name',
                 border: OutlineInputBorder(),
               ),
-              validator: (val) => val == null || val.isEmpty ? 'Enter store' : null,
+              validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter store' : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -99,7 +100,8 @@ class _AddReceiptViewState extends State<AddReceiptView> {
                 labelText: 'Currency',
                 border: OutlineInputBorder(),
               ),
-              validator: (val) => val == null || val.isEmpty ? 'Enter currency' : null,
+              validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter currency' : null,
             ),
             const SizedBox(height: 24),
             Row(
@@ -127,16 +129,21 @@ class _AddReceiptViewState extends State<AddReceiptView> {
                     children: [
                       TextFormField(
                         initialValue: item.name,
-                        decoration: const InputDecoration(labelText: 'Item Name'),
+                        decoration: const InputDecoration(
+                          labelText: 'Item Name',
+                        ),
                         onChanged: (val) => item.name = val,
-                        validator: (val) => val == null || val.isEmpty ? 'Enter name' : null,
+                        validator: (val) =>
+                            val == null || val.isEmpty ? 'Enter name' : null,
                       ),
                       Row(
                         children: [
                           Expanded(
                             child: TextFormField(
                               initialValue: item.quantity.toString(),
-                              decoration: const InputDecoration(labelText: 'Qty'),
+                              decoration: const InputDecoration(
+                                labelText: 'Qty',
+                              ),
                               keyboardType: TextInputType.number,
                               onChanged: (val) {
                                 setState(() {
@@ -149,7 +156,9 @@ class _AddReceiptViewState extends State<AddReceiptView> {
                           Expanded(
                             child: TextFormField(
                               initialValue: item.unit,
-                              decoration: const InputDecoration(labelText: 'Unit'),
+                              decoration: const InputDecoration(
+                                labelText: 'Unit',
+                              ),
                               onChanged: (val) => item.unit = val,
                             ),
                           ),
@@ -157,7 +166,9 @@ class _AddReceiptViewState extends State<AddReceiptView> {
                           Expanded(
                             child: TextFormField(
                               initialValue: item.unitPrice.toString(),
-                              decoration: const InputDecoration(labelText: 'Unit Price'),
+                              decoration: const InputDecoration(
+                                labelText: 'Unit Price',
+                              ),
                               keyboardType: TextInputType.number,
                               onChanged: (val) {
                                 setState(() {
@@ -167,7 +178,10 @@ class _AddReceiptViewState extends State<AddReceiptView> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                            ),
                             onPressed: _items.length > 1
                                 ? () => setState(() => _items.removeAt(idx))
                                 : null,
@@ -187,12 +201,15 @@ class _AddReceiptViewState extends State<AddReceiptView> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Total Amount:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Total Amount:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     Text(
                       '${_totalAmount.toStringAsFixed(2)} ${_currencyController.text}',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),

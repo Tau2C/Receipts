@@ -2,13 +2,19 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/receipt.dart';
 import '../services/pds_service.dart';
+import '../services/rust_analytics_service.dart';
+import '../src/rust/api.dart' as rust_api;
 
 class ReceiptsViewModel extends ChangeNotifier {
   final PdsReceiptService _service;
+  final RustAnalyticsService _analyticsService;
   StreamSubscription<String>? _changeSubscription;
 
-  ReceiptsViewModel({PdsReceiptService? service})
-      : _service = service ?? PdsReceiptService();
+  ReceiptsViewModel({
+    PdsReceiptService? service,
+    RustAnalyticsService? analyticsService,
+  })  : _service = service ?? PdsReceiptService(),
+        _analyticsService = analyticsService ?? const RustAnalyticsService();
 
   List<Receipt> _receipts = [];
   bool _isLoading = false;
@@ -22,8 +28,7 @@ class ReceiptsViewModel extends ChangeNotifier {
   bool get isPdsInstalled => _isPdsInstalled;
   String? get errorMessage => _errorMessage;
 
-  double get totalSpend =>
-      _receipts.fold(0.0, (sum, r) => sum + r.total);
+  double get totalSpend => _receipts.fold(0.0, (sum, r) => sum + r.total);
 
   Future<void> initialize() async {
     _isLoading = true;
@@ -85,6 +90,18 @@ class ReceiptsViewModel extends ChangeNotifier {
 
   Future<List<ReceiptItem>> loadReceiptItems(String receiptId) {
     return _service.fetchReceiptItems(receiptId);
+  }
+
+  Future<List<rust_api.BridgeNormalizedItem>> normalizeItems(
+    List<ReceiptItem> items,
+  ) {
+    return _analyticsService.normalizeReceiptItems(items);
+  }
+
+  Future<List<rust_api.BridgeCategorySpend>> calculateCategorySpend(
+    List<ReceiptItem> items,
+  ) {
+    return _analyticsService.calculateCategorySpend(items);
   }
 
   void _subscribeToChanges() {

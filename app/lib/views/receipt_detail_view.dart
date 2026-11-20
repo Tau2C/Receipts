@@ -31,9 +31,7 @@ class _ReceiptDetailViewState extends State<ReceiptDetailView> {
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.receipt.store),
-      ),
+      appBar: AppBar(title: Text(widget.receipt.store)),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -52,9 +50,7 @@ class _ReceiptDetailViewState extends State<ReceiptDetailView> {
                       ),
                       Text(
                         '${widget.receipt.total.toStringAsFixed(2)} ${widget.receipt.currency}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
+                        style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.primary,
@@ -88,10 +84,7 @@ class _ReceiptDetailViewState extends State<ReceiptDetailView> {
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Line Items',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('Line Items', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           FutureBuilder<List<ReceiptItem>>(
             future: _itemsFuture,
@@ -108,22 +101,46 @@ class _ReceiptDetailViewState extends State<ReceiptDetailView> {
                   ),
                 );
               }
-              return Column(
-                children: items.map((item) {
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    child: ListTile(
-                      title: Text(item.name),
-                      subtitle: Text(
-                        '${item.quantity} ${item.unit} @ ${item.unitPrice.toStringAsFixed(2)}',
-                      ),
-                      trailing: Text(
-                        '${item.totalPrice.toStringAsFixed(2)} ${widget.receipt.currency}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
+              return FutureBuilder(
+                future: widget.viewModel.normalizeItems(items),
+                builder: (context, normSnapshot) {
+                  final normalizedItems = normSnapshot.data;
+                  return Column(
+                    children: items.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      final norm = normalizedItems != null &&
+                              index < normalizedItems.length
+                          ? normalizedItems[index]
+                          : null;
+
+                      final brandText =
+                          norm?.brand != null ? '[${norm!.brand}] ' : '';
+                      final displayName = norm != null
+                          ? '$brandText${norm.cleanedName}'
+                          : item.name;
+
+                      final normPriceInfo = norm?.unitPriceNormalized != null &&
+                              norm?.standardUnit != null
+                          ? ' (~${norm!.unitPriceNormalized!.toStringAsFixed(2)} ${widget.receipt.currency}/${norm.standardUnit})'
+                          : '';
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          title: Text(displayName),
+                          subtitle: Text(
+                            '${item.quantity} ${item.unit} @ ${item.unitPrice.toStringAsFixed(2)}$normPriceInfo',
+                          ),
+                          trailing: Text(
+                            '${item.totalPrice.toStringAsFixed(2)} ${widget.receipt.currency}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   );
-                }).toList(),
+                },
               );
             },
           ),
