@@ -1,5 +1,8 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  exclude:
+    - rust_builder/**
+    - lib/src/rust/frb_generated*
   errors:
     deprecated_member_use: ignore

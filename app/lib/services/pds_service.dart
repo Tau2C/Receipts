@@ -60,7 +60,9 @@ class PdsReceiptService {
   /// Fetches items for a specific receipt.
   Future<List<ReceiptItem>> fetchReceiptItems(String receiptId) async {
     try {
-      final res = await _client.query('receipt_items', {'receipt_id': receiptId});
+      final res = await _client.query('receipt_items', {
+        'receipt_id': receiptId,
+      });
       if (res.isEmpty) return [];
 
       final list = jsonDecode(res);

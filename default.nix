@@ -21,6 +21,13 @@ mkShell {
         "rust-analyzer"
         "rustfmt"
       ];
+      targets = [
+        "aarch64-linux-android"
+        "armv7-linux-androideabi"
+        "x86_64-linux-android"
+        "i686-linux-android"
+        "x86_64-unknown-linux-gnu"
+      ];
     })
 
     jdk17
@@ -31,6 +38,7 @@ mkShell {
     flutter
     flutter_rust_bridge_codegen
     cargo-expand
+    rustup
 
     gh
   ];

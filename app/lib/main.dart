@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'src/rust/frb_generated.dart';
 import 'viewmodels/receipts_viewmodel.dart';
 import 'views/receipts_list_view.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await RustLib.init();
+  } catch (e) {
+    debugPrint('RustLib.init() skipped or failed in test/dev environment: $e');
+  }
   runApp(const ReceiptsApp());
 }
 

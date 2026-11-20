@@ -24,13 +24,15 @@ class Receipt {
     return Receipt(
       id: json['id'] as String? ?? '',
       store: json['store'] as String? ?? '',
-      timestamp: DateTime.tryParse(json['timestamp'] as String? ?? '') ??
+      timestamp:
+          DateTime.tryParse(json['timestamp'] as String? ?? '') ??
           DateTime.now(),
       total: (json['total'] as num?)?.toDouble() ?? 0.0,
       currency: json['currency'] as String? ?? 'PLN',
       imageBlobHash: json['image_blob_hash'] as String?,
       itemsRef: json['items_ref'] as String?,
-      tags: (json['tags'] as Map<String, dynamic>?)?.map(
+      tags:
+          (json['tags'] as Map<String, dynamic>?)?.map(
             (k, v) => MapEntry(k, v.toString()),
           ) ??
           {},
@@ -73,8 +75,8 @@ class ReceiptItem {
     required this.unitPrice,
     double? totalPrice,
     Map<String, String>? tags,
-  })  : totalPrice = totalPrice ?? ((quantity * unitPrice * 100).round() / 100),
-        tags = tags ?? {};
+  }) : totalPrice = totalPrice ?? ((quantity * unitPrice * 100).round() / 100),
+       tags = tags ?? {};
 
   factory ReceiptItem.fromJson(Map<String, dynamic> json) {
     return ReceiptItem(
@@ -86,7 +88,8 @@ class ReceiptItem {
       unit: json['unit'] as String? ?? 'pcs',
       unitPrice: (json['unit_price'] as num?)?.toDouble() ?? 0.0,
       totalPrice: (json['total_price'] as num?)?.toDouble(),
-      tags: (json['tags'] as Map<String, dynamic>?)?.map(
+      tags:
+          (json['tags'] as Map<String, dynamic>?)?.map(
             (k, v) => MapEntry(k, v.toString()),
           ) ??
           {},

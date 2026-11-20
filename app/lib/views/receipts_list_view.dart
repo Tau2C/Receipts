@@ -60,9 +60,7 @@ class ReceiptsListView extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             '${viewModel.totalSpend.toStringAsFixed(2)} PLN',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(context).colorScheme.primary,
@@ -70,7 +68,11 @@ class ReceiptsListView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      Container(height: 36, width: 1, color: Colors.grey.shade300),
+                      Container(
+                        height: 36,
+                        width: 1,
+                        color: Colors.grey.shade300,
+                      ),
                       Column(
                         children: [
                           Text(
@@ -80,9 +82,7 @@ class ReceiptsListView extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             '${viewModel.receipts.length}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -96,7 +96,9 @@ class ReceiptsListView extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: MaterialBanner(
                     content: Text(viewModel.errorMessage!),
-                    backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.errorContainer,
                     actions: [
                       if (!viewModel.isPdsInstalled)
                         FilledButton.icon(
@@ -119,60 +121,62 @@ class ReceiptsListView extends StatelessWidget {
                 child: viewModel.isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : viewModel.receipts.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'No receipts found in PDS.\nTap + to add your first receipt.',
-                              textAlign: TextAlign.center,
+                    ? const Center(
+                        child: Text(
+                          'No receipts found in PDS.\nTap + to add your first receipt.',
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: viewModel.receipts.length,
+                        itemBuilder: (context, index) {
+                          final receipt = viewModel.receipts[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
                             ),
-                          )
-                        : ListView.builder(
-                            itemCount: viewModel.receipts.length,
-                            itemBuilder: (context, index) {
-                              final receipt = viewModel.receipts[index];
-                              return Card(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 4,
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                child: Text(
+                                  receipt.store.isNotEmpty
+                                      ? receipt.store[0].toUpperCase()
+                                      : '?',
                                 ),
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    child: Text(
-                                      receipt.store.isNotEmpty
-                                          ? receipt.store[0].toUpperCase()
-                                          : '?',
+                              ),
+                              title: Text(
+                                receipt.store,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Text(
+                                dateFormat.format(receipt.timestamp),
+                              ),
+                              trailing: Text(
+                                '${receipt.total.toStringAsFixed(2)} ${receipt.currency}',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                              ),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ReceiptDetailView(
+                                      receipt: receipt,
+                                      viewModel: viewModel,
                                     ),
                                   ),
-                                  title: Text(
-                                    receipt.store,
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  subtitle: Text(
-                                    dateFormat.format(receipt.timestamp),
-                                  ),
-                                  trailing: Text(
-                                    '${receipt.total.toStringAsFixed(2)} ${receipt.currency}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).colorScheme.primary,
-                                        ),
-                                  ),
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => ReceiptDetailView(
-                                          receipt: receipt,
-                                          viewModel: viewModel,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              );
-                            },
-                          ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
               ),
             ],
           ),
