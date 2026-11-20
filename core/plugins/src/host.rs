@@ -13,7 +13,10 @@ pub struct PluginHostConfig {
     pub http_callback: Option<HttpCallback>,
 }
 
+use wasmi_wasi::{WasiCtx, WasiCtxBuilder};
+
 pub struct HostState {
+    pub wasi: WasiCtx,
     pub http_callback: Option<HttpCallback>,
     pub memory: Option<Memory>,
 }
@@ -40,15 +43,21 @@ impl PluginHost {
     }
 
     fn init_store_and_instance(&self) -> Result<(Store<HostState>, Instance), PluginError> {
+        let wasi = WasiCtxBuilder::new()
+            .inherit_stdout()
+            .inherit_stderr()
+            .build();
         let mut store = Store::new(
             &self.engine,
             HostState {
+                wasi,
                 http_callback: self.config.http_callback.clone(),
                 memory: None,
             },
         );
 
         let mut linker = Linker::new(&self.engine);
+        wasmi_wasi::add_to_linker(&mut linker, |state: &mut HostState| &mut state.wasi)?;
 
         // Host import: host_http_request
         linker.func_wrap(
@@ -291,5 +300,52 @@ mod tests {
         assert_eq!(pds_receipt.store, "Lidl");
         assert_eq!(pds_items.len(), 2);
         assert_eq!(pds_items[0].name, "Butter");
+    }
+
+    #[test]
+    fn test_lidl_mock_compiled_wasm() {
+        let wasm_path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../target/wasm32-wasip1/release/lidl_mock.wasm"
+        );
+        let wasm_bytes = match std::fs::read(wasm_path) {
+            Ok(b) => b,
+            Err(_) => return, // Skip test if wasm binary hasn't been built yet
+        };
+
+        let host = PluginHost::new(&wasm_bytes, PluginHostConfig::default())
+            .expect("Host creation failed for lidl_mock.wasm");
+
+        let manifest = host.get_manifest().expect("Manifest read failed");
+        assert_eq!(manifest.retailer, "Lidl");
+        assert_eq!(manifest.id, "lidl_plus_mock");
+
+        let receipts = host
+            .fetch_receipts(
+                &PluginAuthPayload {
+                    access_token: "test_token".to_string(),
+                    refresh_token: None,
+                    expires_at: None,
+                    custom_headers: None,
+                },
+                &FetchReceiptsRequest {
+                    since: None,
+                    limit: Some(10),
+                },
+            )
+            .expect("Fetch receipts failed");
+
+        assert_eq!(receipts.len(), 2);
+        assert_eq!(receipts[0].store, "Lidl");
+        assert_eq!(receipts[0].total, 28.47);
+        assert_eq!(receipts[0].items.len(), 3);
+
+        let (pds_receipt, pds_items) = receipts[0]
+            .clone()
+            .to_pds_records()
+            .expect("PDS conversion failed");
+        assert_eq!(pds_receipt.store, "Lidl");
+        assert_eq!(pds_items.len(), 3);
+        assert_eq!(pds_items[0].name, "Pilos Mleko UHT 3.2% 1l");
     }
 }
