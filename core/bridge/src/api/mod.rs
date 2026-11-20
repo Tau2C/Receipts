@@ -65,7 +65,8 @@ pub fn normalize_receipt_items(items: Vec<BridgeReceiptItem>) -> Vec<BridgeNorma
         .into_iter()
         .map(|item| {
             let (brand, cleaned_name) = CatalogDeriver::extract_brand_and_name(&item.name);
-            let normalized = UnitPriceNormalizer::normalize(item.quantity, &item.unit, item.total_price);
+            let normalized =
+                UnitPriceNormalizer::normalize(item.quantity, &item.unit, item.total_price);
 
             let (norm_price, norm_unit) = match normalized {
                 Some((price, unit)) => {
@@ -74,7 +75,10 @@ pub fn normalize_receipt_items(items: Vec<BridgeReceiptItem>) -> Vec<BridgeNorma
                         StandardUnit::Liter => "l",
                         StandardUnit::Piece => "pcs",
                     };
-                    (Some((price * 100.0).round() / 100.0), Some(u_str.to_string()))
+                    (
+                        Some((price * 100.0).round() / 100.0),
+                        Some(u_str.to_string()),
+                    )
                 }
                 None => (None, None),
             };
@@ -125,7 +129,10 @@ pub fn calculate_category_spend(items: Vec<BridgeReceiptItem>) -> Vec<BridgeCate
         .collect()
 }
 
-pub fn calculate_price_trend(variant_ref: String, points: Vec<BridgePricePoint>) -> Option<BridgePriceTrendResult> {
+pub fn calculate_price_trend(
+    variant_ref: String,
+    points: Vec<BridgePricePoint>,
+) -> Option<BridgePriceTrendResult> {
     let observations = points
         .into_iter()
         .map(|p| PriceObservation {
@@ -148,10 +155,6 @@ pub fn calculate_price_trend(variant_ref: String, points: Vec<BridgePricePoint>)
 
 pub fn parse_tag_json(json: String) -> Vec<String> {
     Tags::from_json(&json)
-        .map(|tags| {
-            tags.into_iter()
-                .map(|(k, v)| format!("{k}={v}"))
-                .collect()
-        })
+        .map(|tags| tags.into_iter().map(|(k, v)| format!("{k}={v}")).collect())
         .unwrap_or_default()
 }
