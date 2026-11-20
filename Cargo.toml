@@ -5,4 +5,5 @@ members = [
     "core/pds_types",
     "core/catalog",
     "core/analytics",
+    "core/bridge",
 ]
