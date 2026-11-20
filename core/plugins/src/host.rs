@@ -47,7 +47,6 @@ impl PluginHost {
             .inherit_stdout()
             .inherit_stderr()
             .build();
-
         let mut store = Store::new(
             &self.engine,
             HostState {

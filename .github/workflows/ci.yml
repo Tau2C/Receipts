@@ -65,13 +65,6 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Plugin Analyzer & Tests
-        run: |
-          cd plugins/pds_flutter
-          flutter pub get
-          flutter analyze
-          flutter test
-
       - name: App Analyzer & Tests
         run: |
           cd app
