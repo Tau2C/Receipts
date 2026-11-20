@@ -23,6 +23,10 @@ void main() {
           return true;
         case 'executeRawRequest':
           return '{"status":"Success"}';
+        case 'isPdsInstalled':
+          return true;
+        case 'installPdsApk':
+          return true;
         default:
           return null;
       }

@@ -14,6 +14,16 @@ class PdsReceiptService {
     return _client.connect();
   }
 
+  /// Checks if PDS Core service is installed on the system.
+  Future<bool> isPdsInstalled() async {
+    return _client.isPdsInstalled();
+  }
+
+  /// Prompts system package installer to install PDS Core APK.
+  Future<bool> installPdsApk(String apkUriString) async {
+    return _client.installPdsApk(apkUriString);
+  }
+
   /// Disconnects from PDS Core.
   Future<bool> dispose() async {
     return _client.disconnect();
