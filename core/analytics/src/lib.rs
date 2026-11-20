@@ -1,6 +1,6 @@
+use pds_types::ReceiptItemRecord;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use pds_types::ReceiptItemRecord;
 
 /// Standard base units for price normalization
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -21,7 +21,9 @@ impl UnitPriceNormalizer {
 
         let u = unit.trim().to_lowercase();
         match u.as_str() {
-            "kg" | "kilogram" | "kilograms" => Some((total_price / quantity, StandardUnit::Kilogram)),
+            "kg" | "kilogram" | "kilograms" => {
+                Some((total_price / quantity, StandardUnit::Kilogram))
+            }
             "g" | "gram" | "grams" => {
                 let kg = quantity / 1000.0;
                 Some((total_price / kg, StandardUnit::Kilogram))
@@ -168,11 +170,25 @@ mod tests {
     #[test]
     fn test_category_spend_aggregator() {
         let mut agg = CategorySpendAggregator::new();
-        let mut item1 = ReceiptItemRecord::new("1".into(), "r1".into(), "Cola".into(), 1.0, "pcs".into(), 5.00);
+        let mut item1 = ReceiptItemRecord::new(
+            "1".into(),
+            "r1".into(),
+            "Cola".into(),
+            1.0,
+            "pcs".into(),
+            5.00,
+        );
         item1.tags.set_tag("category", "drink:fizzy");
         agg.add_item(&item1, None);
 
-        let mut item2 = ReceiptItemRecord::new("2".into(), "r1".into(), "Pepsi".into(), 1.0, "pcs".into(), 4.50);
+        let mut item2 = ReceiptItemRecord::new(
+            "2".into(),
+            "r1".into(),
+            "Pepsi".into(),
+            1.0,
+            "pcs".into(),
+            4.50,
+        );
         item2.tags.set_tag("category", "drink:fizzy");
         agg.add_item(&item2, None);
 

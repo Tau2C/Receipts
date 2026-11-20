@@ -1,5 +1,5 @@
-use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 /// Standard tag key suggestions for autocompletion
 pub const STANDARD_KEYS: &[&str] = &[
@@ -79,7 +79,9 @@ impl Tags {
     }
 
     pub fn get_tag_vec_separated_with(&self, tag: &str, separator: &str) -> Option<Vec<&str>> {
-        self.0.get(tag).map(|s| s.split(separator).filter(|v| !v.is_empty()).collect())
+        self.0
+            .get(tag)
+            .map(|s| s.split(separator).filter(|v| !v.is_empty()).collect())
     }
 
     pub fn to_json_minified(&self) -> String {
@@ -117,10 +119,19 @@ mod tests {
     fn test_tags_operations() {
         let mut tags = Tags::new();
         tags.set_tag("store", "Target");
-        tags.set_tag_to_vec("category", vec!["food".to_string(), "groceries".to_string()]);
+        tags.set_tag_to_vec(
+            "category",
+            vec!["food".to_string(), "groceries".to_string()],
+        );
 
         assert_eq!(tags.get_tag("store"), Some("Target"));
-        assert_eq!(tags.get_tag_vec("category"), Some(vec!["food", "groceries"]));
-        assert_eq!(tags.to_json_minified(), r#"{"category":"food;groceries","store":"Target"}"#);
+        assert_eq!(
+            tags.get_tag_vec("category"),
+            Some(vec!["food", "groceries"])
+        );
+        assert_eq!(
+            tags.to_json_minified(),
+            r#"{"category":"food;groceries","store":"Target"}"#
+        );
     }
 }

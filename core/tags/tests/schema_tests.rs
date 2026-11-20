@@ -1,6 +1,4 @@
-use tags::{
-    format_members_list, parse_members_list, MemberRef, Object, StoreRef, Tags,
-};
+use tags::{format_members_list, parse_members_list, MemberRef, Object, StoreRef, Tags};
 use ulid::Ulid;
 
 #[test]
@@ -16,7 +14,10 @@ fn test_ulid_generation_for_ids() {
 fn test_object_serialization_minified_json() {
     let mut tags = Tags::new();
     tags.set_tag("store", "Supermarket");
-    tags.set_tag_to_vec("category", vec!["food".to_string(), "groceries".to_string()]);
+    tags.set_tag_to_vec(
+        "category",
+        vec!["food".to_string(), "groceries".to_string()],
+    );
 
     let obj = Object {
         id: Ulid::new().to_string(),

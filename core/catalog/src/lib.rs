@@ -42,7 +42,12 @@ pub struct ProductVariant {
 }
 
 impl ProductVariant {
-    pub fn new(id: String, master_item_id: String, size: Option<String>, barcode: Option<String>) -> Self {
+    pub fn new(
+        id: String,
+        master_item_id: String,
+        size: Option<String>,
+        barcode: Option<String>,
+    ) -> Self {
         let mut tags = Tags::new();
         tags.set_tag("ref", &master_item_id);
         if let Some(ref s) = size {
@@ -79,8 +84,17 @@ impl CatalogDeriver {
     /// Normalizes raw product text into candidate name and brand
     pub fn extract_brand_and_name(raw_name: &str) -> (Option<String>, String) {
         let known_brands = [
-            "Coca-Cola", "Pepsi", "Milka", "Pilos", "Mlekovita", "Łaciate",
-            "Kubuś", "Lipton", "Nescafe", "Danone", "Barilla",
+            "Coca-Cola",
+            "Pepsi",
+            "Milka",
+            "Pilos",
+            "Mlekovita",
+            "Łaciate",
+            "Kubuś",
+            "Lipton",
+            "Nescafe",
+            "Danone",
+            "Barilla",
         ];
 
         for brand in known_brands {
