@@ -80,6 +80,7 @@ jobs:
           flutter test
 
       - name: Build Debug APK
+        if: github.event_name == 'pull_request'
         run: |
           cd app
           flutter build apk --debug --android-skip-build-dependency-validation
