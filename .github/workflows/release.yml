@@ -19,6 +19,18 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Determine Release Channel
+        id: channel
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [[ "$TAG" == *"-beta"* ]] || [[ "$TAG" == *"-rc"* ]] || [[ "$TAG" == *"-alpha"* ]] || [[ "$TAG" == *"-dev"* ]]; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+            echo "fdroid_target_dir=archive" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "fdroid_target_dir=repo" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Java JDK 17
         uses: actions/setup-java@v4
         with:
@@ -66,7 +78,7 @@ jobs:
         with:
           files: release-artifacts/*
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.channel.outputs.is_prerelease == 'true' }}
           generate_release_notes: true
 
       - name: Publish APK to F-Droid Repository
@@ -78,14 +90,15 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           git clone "https://x-access-token:${FDROID_REPO_TOKEN}@github.com/Tau2C/fdroid-repo.git" fdroid-repo
-          mkdir -p fdroid-repo/repo
+          TARGET_DIR="fdroid-repo/${{ steps.channel.outputs.fdroid_target_dir }}"
+          mkdir -p "$TARGET_DIR"
 
           TAG_NAME="${GITHUB_REF_NAME}"
           APK_FILE="release-artifacts/receipts-${TAG_NAME}.apk"
           if [ -f "$APK_FILE" ]; then
-            cp "$APK_FILE" "fdroid-repo/repo/top.tau2c.receipts.app_${TAG_NAME}.apk"
+            cp "$APK_FILE" "${TARGET_DIR}/top.tau2c.receipts.app_${TAG_NAME}.apk"
             cd fdroid-repo
-            git add repo/
-            git commit -m "feat(receipts): add Receipts release ${TAG_NAME}" || exit 0
+            git add repo/ archive/ || true
+            git commit -m "feat(receipts): add Receipts ${TAG_NAME} to ${{ steps.channel.outputs.fdroid_target_dir }}" || exit 0
             git push origin master
           fi
