@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [ develop, master ]
+  pull_request:
+    branches: [ develop, master ]
+
+jobs:
+  rust-check:
+    name: Rust Check & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Rust Formatting Check
+        run: cargo fmt --all --check
+
+      - name: Rust Compilation Check
+        run: cargo check --all
+
+      - name: Rust Clippy
+        run: cargo clippy --all -- -D warnings
+
+      - name: Rust Tests
+        run: cargo test --all
+
+  flutter-check:
+    name: Flutter Check & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Plugin Analyzer & Tests
+        run: |
+          cd plugins/pds_flutter
+          flutter pub get
+          flutter analyze
+          flutter test
+
+      - name: App Analyzer & Tests
+        run: |
+          cd app
+          flutter pub get
+          flutter analyze
+          flutter test
