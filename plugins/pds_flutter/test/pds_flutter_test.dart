@@ -41,6 +41,12 @@ class MockPdsFlutterPlatform
       Future.value('{"cursor":0}');
 
   @override
+  Future<bool> isPdsInstalled() => Future.value(true);
+
+  @override
+  Future<bool> installPdsApk(String apkUriString) => Future.value(true);
+
+  @override
   Stream<String> watchChanges({String entityType = '*'}) =>
       Stream.value('[{"action":"put"}]');
 }

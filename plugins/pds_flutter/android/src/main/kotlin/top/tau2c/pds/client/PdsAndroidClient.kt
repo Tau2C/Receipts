@@ -162,4 +162,30 @@ class PdsAndroidClient(private val context: Context) {
         val req = """{"action":"get_client_cursor","session_id":"$sessionId"}"""
         return executeRawRequest(req)
     }
+
+    /**
+     * Checks if PDS Core package is installed on the device.
+     */
+    fun isPdsInstalled(): Boolean {
+        return try {
+            context.packageManager.getPackageInfo(PDS_PACKAGE_NAME, 0)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun installPdsApk(apkUriString: String): Boolean {
+        return try {
+            val uri = android.net.Uri.parse(apkUriString)
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            }
+            context.startActivity(intent)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
 }

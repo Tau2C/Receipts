@@ -52,6 +52,14 @@ abstract class PdsFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('getClientCursor() has not been implemented.');
   }
 
+  Future<bool> isPdsInstalled() {
+    throw UnimplementedError('isPdsInstalled() has not been implemented.');
+  }
+
+  Future<bool> installPdsApk(String apkUriString) {
+    throw UnimplementedError('installPdsApk() has not been implemented.');
+  }
+
   Stream<String> watchChanges({String entityType = '*'}) {
     throw UnimplementedError('watchChanges() has not been implemented.');
   }

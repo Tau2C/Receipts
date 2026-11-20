@@ -98,9 +98,19 @@ class ReceiptsListView extends StatelessWidget {
                     content: Text(viewModel.errorMessage!),
                     backgroundColor: Theme.of(context).colorScheme.errorContainer,
                     actions: [
+                      if (!viewModel.isPdsInstalled)
+                        FilledButton.icon(
+                          onPressed: () {
+                            viewModel.installPds(
+                              'https://github.com/Tau2C/pds-android/releases/latest',
+                            );
+                          },
+                          icon: const Icon(Icons.download),
+                          label: const Text('ZAINSTALUJ PDS'),
+                        ),
                       TextButton(
-                        onPressed: viewModel.loadReceipts,
-                        child: const Text('RETRY'),
+                        onPressed: viewModel.initialize,
+                        child: const Text('PONÓW'),
                       ),
                     ],
                   ),

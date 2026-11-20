@@ -80,6 +80,21 @@ class MethodChannelPdsFlutter extends PdsFlutterPlatform {
   }
 
   @override
+  Future<bool> isPdsInstalled() async {
+    final installed = await methodChannel.invokeMethod<bool>('isPdsInstalled');
+    return installed ?? false;
+  }
+
+  @override
+  Future<bool> installPdsApk(String apkUriString) async {
+    final success = await methodChannel.invokeMethod<bool>(
+      'installPdsApk',
+      {'apkUriString': apkUriString},
+    );
+    return success ?? false;
+  }
+
+  @override
   Stream<String> watchChanges({String entityType = '*'}) {
     return eventChannel
         .receiveBroadcastStream({'entityType': entityType})

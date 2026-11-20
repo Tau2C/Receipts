@@ -13,11 +13,13 @@ class ReceiptsViewModel extends ChangeNotifier {
   List<Receipt> _receipts = [];
   bool _isLoading = false;
   bool _isConnected = false;
+  bool _isPdsInstalled = true;
   String? _errorMessage;
 
   List<Receipt> get receipts => List.unmodifiable(_receipts);
   bool get isLoading => _isLoading;
   bool get isConnected => _isConnected;
+  bool get isPdsInstalled => _isPdsInstalled;
   String? get errorMessage => _errorMessage;
 
   double get totalSpend =>
@@ -28,12 +30,19 @@ class ReceiptsViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      _isPdsInstalled = await _service.isPdsInstalled();
+      if (!_isPdsInstalled) {
+        _errorMessage = 'Usługa PDS Core nie jest zainstalowana w systemie.';
+        _isConnected = false;
+        return;
+      }
+
       _isConnected = await _service.initialize();
       if (_isConnected) {
         await loadReceipts();
         _subscribeToChanges();
       } else {
-        _errorMessage = 'Could not bind to PDS Core service';
+        _errorMessage = 'Nie udało się połączyć z usługą PDS Core.';
       }
     } catch (e) {
       _errorMessage = e.toString();
@@ -41,6 +50,10 @@ class ReceiptsViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<bool> installPds(String apkUriOrUrl) async {
+    return _service.installPdsApk(apkUriOrUrl);
   }
 
   Future<void> loadReceipts() async {

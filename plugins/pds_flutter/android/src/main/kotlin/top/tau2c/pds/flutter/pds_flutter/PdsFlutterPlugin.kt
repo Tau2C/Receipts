@@ -138,6 +138,17 @@ class PdsFlutterPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHa
                     result.error("CURSOR_ERROR", e.message, null)
                 }
             }
+            "isPdsInstalled" -> {
+                result.success(client.isPdsInstalled())
+            }
+            "installPdsApk" -> {
+                val apkUriString = call.argument<String>("apkUriString")
+                if (apkUriString == null) {
+                    result.error("INVALID_ARGUMENT", "apkUriString must not be null", null)
+                    return
+                }
+                result.success(client.installPdsApk(apkUriString))
+            }
             else -> {
                 result.notImplemented()
             }
