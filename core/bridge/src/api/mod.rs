@@ -55,9 +55,98 @@ pub struct BridgePriceTrendResult {
     pub latest_price: f64,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BridgePluginManifest {
+    pub id: String,
+    pub name: String,
+    pub version: String,
+    pub retailer: String,
+    pub description: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BridgePluginReceiptItem {
+    pub name: String,
+    pub quantity: f64,
+    pub unit: String,
+    pub unit_price: f64,
+    pub total_price: f64,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BridgePluginReceipt {
+    pub external_id: String,
+    pub store: String,
+    pub timestamp: String,
+    pub total: f64,
+    pub currency: String,
+    pub items: Vec<BridgePluginReceiptItem>,
+}
+
 #[flutter_rust_bridge::frb(init)]
 pub fn init_app() {
     flutter_rust_bridge::setup_default_user_utils();
+}
+
+pub fn get_plugin_manifest(wasm_bytes: Vec<u8>) -> Result<BridgePluginManifest, String> {
+    let host = plugins::PluginHost::new(&wasm_bytes, plugins::PluginHostConfig::default())
+        .map_err(|e| format!("Plugin initialization error: {e}"))?;
+
+    let manifest = host
+        .get_manifest()
+        .map_err(|e| format!("Failed to read plugin manifest: {e}"))?;
+
+    Ok(BridgePluginManifest {
+        id: manifest.id,
+        name: manifest.name,
+        version: manifest.version,
+        retailer: manifest.retailer,
+        description: manifest.description,
+    })
+}
+
+pub fn execute_plugin_fetch_receipts(
+    wasm_bytes: Vec<u8>,
+    access_token: String,
+    since: Option<String>,
+    limit: Option<u32>,
+) -> Result<Vec<BridgePluginReceipt>, String> {
+    let host = plugins::PluginHost::new(&wasm_bytes, plugins::PluginHostConfig::default())
+        .map_err(|e| format!("Plugin initialization error: {e}"))?;
+
+    let auth = plugins::PluginAuthPayload {
+        access_token,
+        refresh_token: None,
+        expires_at: None,
+        custom_headers: None,
+    };
+
+    let req = plugins::FetchReceiptsRequest { since, limit };
+
+    let receipts = host
+        .fetch_receipts(&auth, &req)
+        .map_err(|e| format!("Failed to fetch receipts from plugin: {e}"))?;
+
+    Ok(receipts
+        .into_iter()
+        .map(|r| BridgePluginReceipt {
+            external_id: r.external_id,
+            store: r.store,
+            timestamp: r.timestamp,
+            total: r.total,
+            currency: r.currency,
+            items: r.items
+                .into_iter()
+                .map(|item| BridgePluginReceiptItem {
+                    name: item.name,
+                    quantity: item.quantity,
+                    unit: item.unit,
+                    unit_price: item.unit_price,
+                    total_price: item.total_price,
+                })
+                .collect(),
+        })
+        .collect())
 }
 
 pub fn normalize_receipt_items(items: Vec<BridgeReceiptItem>) -> Vec<BridgeNormalizedItem> {

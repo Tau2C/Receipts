@@ -32,10 +32,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   double dco_decode_box_autoadd_f_64(dynamic raw);
 
   @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw);
+
+  @protected
   BridgeCategorySpend dco_decode_bridge_category_spend(dynamic raw);
 
   @protected
   BridgeNormalizedItem dco_decode_bridge_normalized_item(dynamic raw);
+
+  @protected
+  BridgePluginManifest dco_decode_bridge_plugin_manifest(dynamic raw);
+
+  @protected
+  BridgePluginReceipt dco_decode_bridge_plugin_receipt(dynamic raw);
+
+  @protected
+  BridgePluginReceiptItem dco_decode_bridge_plugin_receipt_item(dynamic raw);
 
   @protected
   BridgePricePoint dco_decode_bridge_price_point(dynamic raw);
@@ -61,10 +73,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<BridgePluginReceipt> dco_decode_list_bridge_plugin_receipt(dynamic raw);
+
+  @protected
+  List<BridgePluginReceiptItem> dco_decode_list_bridge_plugin_receipt_item(
+    dynamic raw,
+  );
+
+  @protected
   List<BridgePricePoint> dco_decode_list_bridge_price_point(dynamic raw);
 
   @protected
   List<BridgeReceiptItem> dco_decode_list_bridge_receipt_item(dynamic raw);
+
+  @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -79,6 +102,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  int dco_decode_u_32(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -98,12 +127,30 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
 
   @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
   BridgeCategorySpend sse_decode_bridge_category_spend(
     SseDeserializer deserializer,
   );
 
   @protected
   BridgeNormalizedItem sse_decode_bridge_normalized_item(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BridgePluginManifest sse_decode_bridge_plugin_manifest(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BridgePluginReceipt sse_decode_bridge_plugin_receipt(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BridgePluginReceiptItem sse_decode_bridge_plugin_receipt_item(
     SseDeserializer deserializer,
   );
 
@@ -137,6 +184,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<BridgePluginReceipt> sse_decode_list_bridge_plugin_receipt(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<BridgePluginReceiptItem> sse_decode_list_bridge_plugin_receipt_item(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<BridgePricePoint> sse_decode_list_bridge_price_point(
     SseDeserializer deserializer,
   );
@@ -145,6 +202,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<BridgeReceiptItem> sse_decode_list_bridge_receipt_item(
     SseDeserializer deserializer,
   );
+
+  @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -159,6 +219,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_u_32(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -185,6 +251,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
   void sse_encode_bridge_category_spend(
     BridgeCategorySpend self,
     SseSerializer serializer,
@@ -193,6 +262,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_bridge_normalized_item(
     BridgeNormalizedItem self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bridge_plugin_manifest(
+    BridgePluginManifest self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bridge_plugin_receipt(
+    BridgePluginReceipt self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bridge_plugin_receipt_item(
+    BridgePluginReceiptItem self,
     SseSerializer serializer,
   );
 
@@ -233,6 +320,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_bridge_plugin_receipt(
+    List<BridgePluginReceipt> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_bridge_plugin_receipt_item(
+    List<BridgePluginReceiptItem> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_bridge_price_point(
     List<BridgePricePoint> self,
     SseSerializer serializer,
@@ -243,6 +342,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     List<BridgeReceiptItem> self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
@@ -261,6 +363,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_32(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);

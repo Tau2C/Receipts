@@ -6,7 +6,23 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+
+Future<BridgePluginManifest> getPluginManifest({
+  required List<int> wasmBytes,
+}) => RustLib.instance.api.crateApiGetPluginManifest(wasmBytes: wasmBytes);
+
+Future<List<BridgePluginReceipt>> executePluginFetchReceipts({
+  required List<int> wasmBytes,
+  required String accessToken,
+  String? since,
+  int? limit,
+}) => RustLib.instance.api.crateApiExecutePluginFetchReceipts(
+  wasmBytes: wasmBytes,
+  accessToken: accessToken,
+  since: since,
+  limit: limit,
+);
 
 Future<List<BridgeNormalizedItem>> normalizeReceiptItems({
   required List<BridgeReceiptItem> items,
@@ -109,6 +125,115 @@ class BridgeNormalizedItem {
           tagsJson == other.tagsJson &&
           unitPriceNormalized == other.unitPriceNormalized &&
           standardUnit == other.standardUnit;
+}
+
+class BridgePluginManifest {
+  final String id;
+  final String name;
+  final String version;
+  final String retailer;
+  final String description;
+
+  const BridgePluginManifest({
+    required this.id,
+    required this.name,
+    required this.version,
+    required this.retailer,
+    required this.description,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      version.hashCode ^
+      retailer.hashCode ^
+      description.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BridgePluginManifest &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          version == other.version &&
+          retailer == other.retailer &&
+          description == other.description;
+}
+
+class BridgePluginReceipt {
+  final String externalId;
+  final String store;
+  final String timestamp;
+  final double total;
+  final String currency;
+  final List<BridgePluginReceiptItem> items;
+
+  const BridgePluginReceipt({
+    required this.externalId,
+    required this.store,
+    required this.timestamp,
+    required this.total,
+    required this.currency,
+    required this.items,
+  });
+
+  @override
+  int get hashCode =>
+      externalId.hashCode ^
+      store.hashCode ^
+      timestamp.hashCode ^
+      total.hashCode ^
+      currency.hashCode ^
+      items.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BridgePluginReceipt &&
+          runtimeType == other.runtimeType &&
+          externalId == other.externalId &&
+          store == other.store &&
+          timestamp == other.timestamp &&
+          total == other.total &&
+          currency == other.currency &&
+          items == other.items;
+}
+
+class BridgePluginReceiptItem {
+  final String name;
+  final double quantity;
+  final String unit;
+  final double unitPrice;
+  final double totalPrice;
+
+  const BridgePluginReceiptItem({
+    required this.name,
+    required this.quantity,
+    required this.unit,
+    required this.unitPrice,
+    required this.totalPrice,
+  });
+
+  @override
+  int get hashCode =>
+      name.hashCode ^
+      quantity.hashCode ^
+      unit.hashCode ^
+      unitPrice.hashCode ^
+      totalPrice.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BridgePluginReceiptItem &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          quantity == other.quantity &&
+          unit == other.unit &&
+          unitPrice == other.unitPrice &&
+          totalPrice == other.totalPrice;
 }
 
 class BridgePricePoint {

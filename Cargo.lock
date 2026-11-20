@@ -770,6 +770,7 @@ dependencies = [
  "chrono",
  "flutter_rust_bridge",
  "pds_types",
+ "plugins",
  "serde",
  "serde_json",
  "tags",
