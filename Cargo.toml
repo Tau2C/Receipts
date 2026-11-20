@@ -6,4 +6,6 @@ members = [
     "core/catalog",
     "core/analytics",
     "core/bridge",
+    "core/plugins",
+    "plugins/lidl_mock",
 ]

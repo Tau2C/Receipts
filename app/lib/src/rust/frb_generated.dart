@@ -66,7 +66,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => -1976718688;
+  int get rustContentHash => 1126992747;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -85,6 +85,17 @@ abstract class RustLibApi extends BaseApi {
   Future<BridgePriceTrendResult?> crateApiCalculatePriceTrend({
     required String variantRef,
     required List<BridgePricePoint> points,
+  });
+
+  Future<List<BridgePluginReceipt>> crateApiExecutePluginFetchReceipts({
+    required List<int> wasmBytes,
+    required String accessToken,
+    String? since,
+    int? limit,
+  });
+
+  Future<BridgePluginManifest> crateApiGetPluginManifest({
+    required List<int> wasmBytes,
   });
 
   Future<void> crateApiInitApp();
@@ -174,6 +185,77 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<List<BridgePluginReceipt>> crateApiExecutePluginFetchReceipts({
+    required List<int> wasmBytes,
+    required String accessToken,
+    String? since,
+    int? limit,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_u_8_loose(wasmBytes, serializer);
+          sse_encode_String(accessToken, serializer);
+          sse_encode_opt_String(since, serializer);
+          sse_encode_opt_box_autoadd_u_32(limit, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 3,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_bridge_plugin_receipt,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiExecutePluginFetchReceiptsConstMeta,
+        argValues: [wasmBytes, accessToken, since, limit],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiExecutePluginFetchReceiptsConstMeta =>
+      const TaskConstMeta(
+        debugName: "execute_plugin_fetch_receipts",
+        argNames: ["wasmBytes", "accessToken", "since", "limit"],
+      );
+
+  @override
+  Future<BridgePluginManifest> crateApiGetPluginManifest({
+    required List<int> wasmBytes,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_u_8_loose(wasmBytes, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bridge_plugin_manifest,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGetPluginManifestConstMeta,
+        argValues: [wasmBytes],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiGetPluginManifestConstMeta => const TaskConstMeta(
+    debugName: "get_plugin_manifest",
+    argNames: ["wasmBytes"],
+  );
+
+  @override
   Future<void> crateApiInitApp() {
     return handler.executeNormal(
       NormalTask(
@@ -182,7 +264,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 3,
+            funcId: 5,
             port: port_,
           );
         },
@@ -212,7 +294,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 6,
             port: port_,
           );
         },
@@ -243,7 +325,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 7,
             port: port_,
           );
         },
@@ -282,6 +364,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
   BridgeCategorySpend dco_decode_bridge_category_spend(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -312,6 +400,52 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       tagsJson: dco_decode_String(arr[9]),
       unitPriceNormalized: dco_decode_opt_box_autoadd_f_64(arr[10]),
       standardUnit: dco_decode_opt_String(arr[11]),
+    );
+  }
+
+  @protected
+  BridgePluginManifest dco_decode_bridge_plugin_manifest(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return BridgePluginManifest(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      version: dco_decode_String(arr[2]),
+      retailer: dco_decode_String(arr[3]),
+      description: dco_decode_String(arr[4]),
+    );
+  }
+
+  @protected
+  BridgePluginReceipt dco_decode_bridge_plugin_receipt(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return BridgePluginReceipt(
+      externalId: dco_decode_String(arr[0]),
+      store: dco_decode_String(arr[1]),
+      timestamp: dco_decode_String(arr[2]),
+      total: dco_decode_f_64(arr[3]),
+      currency: dco_decode_String(arr[4]),
+      items: dco_decode_list_bridge_plugin_receipt_item(arr[5]),
+    );
+  }
+
+  @protected
+  BridgePluginReceiptItem dco_decode_bridge_plugin_receipt_item(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return BridgePluginReceiptItem(
+      name: dco_decode_String(arr[0]),
+      quantity: dco_decode_f_64(arr[1]),
+      unit: dco_decode_String(arr[2]),
+      unitPrice: dco_decode_f_64(arr[3]),
+      totalPrice: dco_decode_f_64(arr[4]),
     );
   }
 
@@ -392,6 +526,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<BridgePluginReceipt> dco_decode_list_bridge_plugin_receipt(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_bridge_plugin_receipt)
+        .toList();
+  }
+
+  @protected
+  List<BridgePluginReceiptItem> dco_decode_list_bridge_plugin_receipt_item(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_bridge_plugin_receipt_item)
+        .toList();
+  }
+
+  @protected
   List<BridgePricePoint> dco_decode_list_bridge_price_point(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_bridge_price_point).toList();
@@ -401,6 +553,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<BridgeReceiptItem> dco_decode_list_bridge_receipt_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_bridge_receipt_item).toList();
+  }
+
+  @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as List<int>;
   }
 
   @protected
@@ -429,6 +587,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   double? dco_decode_opt_box_autoadd_f_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_f_64(raw);
+  }
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_u_32(raw);
+  }
+
+  @protected
+  int dco_decode_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
   }
 
   @protected
@@ -462,6 +632,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   double sse_decode_box_autoadd_f_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_f_64(deserializer));
+  }
+
+  @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_u_32(deserializer));
   }
 
   @protected
@@ -507,6 +683,65 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       tagsJson: var_tagsJson,
       unitPriceNormalized: var_unitPriceNormalized,
       standardUnit: var_standardUnit,
+    );
+  }
+
+  @protected
+  BridgePluginManifest sse_decode_bridge_plugin_manifest(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_version = sse_decode_String(deserializer);
+    var var_retailer = sse_decode_String(deserializer);
+    var var_description = sse_decode_String(deserializer);
+    return BridgePluginManifest(
+      id: var_id,
+      name: var_name,
+      version: var_version,
+      retailer: var_retailer,
+      description: var_description,
+    );
+  }
+
+  @protected
+  BridgePluginReceipt sse_decode_bridge_plugin_receipt(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_externalId = sse_decode_String(deserializer);
+    var var_store = sse_decode_String(deserializer);
+    var var_timestamp = sse_decode_String(deserializer);
+    var var_total = sse_decode_f_64(deserializer);
+    var var_currency = sse_decode_String(deserializer);
+    var var_items = sse_decode_list_bridge_plugin_receipt_item(deserializer);
+    return BridgePluginReceipt(
+      externalId: var_externalId,
+      store: var_store,
+      timestamp: var_timestamp,
+      total: var_total,
+      currency: var_currency,
+      items: var_items,
+    );
+  }
+
+  @protected
+  BridgePluginReceiptItem sse_decode_bridge_plugin_receipt_item(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_name = sse_decode_String(deserializer);
+    var var_quantity = sse_decode_f_64(deserializer);
+    var var_unit = sse_decode_String(deserializer);
+    var var_unitPrice = sse_decode_f_64(deserializer);
+    var var_totalPrice = sse_decode_f_64(deserializer);
+    return BridgePluginReceiptItem(
+      name: var_name,
+      quantity: var_quantity,
+      unit: var_unit,
+      unitPrice: var_unitPrice,
+      totalPrice: var_totalPrice,
     );
   }
 
@@ -614,6 +849,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<BridgePluginReceipt> sse_decode_list_bridge_plugin_receipt(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <BridgePluginReceipt>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_bridge_plugin_receipt(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<BridgePluginReceiptItem> sse_decode_list_bridge_plugin_receipt_item(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <BridgePluginReceiptItem>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_bridge_plugin_receipt_item(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<BridgePricePoint> sse_decode_list_bridge_price_point(
     SseDeserializer deserializer,
   ) {
@@ -639,6 +902,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       ans_.add(sse_decode_bridge_receipt_item(deserializer));
     }
     return ans_;
+  }
+
+  @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getUint8List(len_);
   }
 
   @protected
@@ -681,6 +951,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     } else {
       return null;
     }
+  }
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_u_32(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  int sse_decode_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint32();
   }
 
   @protected
@@ -728,6 +1015,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self, serializer);
+  }
+
+  @protected
   void sse_encode_bridge_category_spend(
     BridgeCategorySpend self,
     SseSerializer serializer,
@@ -755,6 +1048,46 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.tagsJson, serializer);
     sse_encode_opt_box_autoadd_f_64(self.unitPriceNormalized, serializer);
     sse_encode_opt_String(self.standardUnit, serializer);
+  }
+
+  @protected
+  void sse_encode_bridge_plugin_manifest(
+    BridgePluginManifest self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.version, serializer);
+    sse_encode_String(self.retailer, serializer);
+    sse_encode_String(self.description, serializer);
+  }
+
+  @protected
+  void sse_encode_bridge_plugin_receipt(
+    BridgePluginReceipt self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.externalId, serializer);
+    sse_encode_String(self.store, serializer);
+    sse_encode_String(self.timestamp, serializer);
+    sse_encode_f_64(self.total, serializer);
+    sse_encode_String(self.currency, serializer);
+    sse_encode_list_bridge_plugin_receipt_item(self.items, serializer);
+  }
+
+  @protected
+  void sse_encode_bridge_plugin_receipt_item(
+    BridgePluginReceiptItem self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.name, serializer);
+    sse_encode_f_64(self.quantity, serializer);
+    sse_encode_String(self.unit, serializer);
+    sse_encode_f_64(self.unitPrice, serializer);
+    sse_encode_f_64(self.totalPrice, serializer);
   }
 
   @protected
@@ -837,6 +1170,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_bridge_plugin_receipt(
+    List<BridgePluginReceipt> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_bridge_plugin_receipt(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_bridge_plugin_receipt_item(
+    List<BridgePluginReceiptItem> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_bridge_plugin_receipt_item(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_bridge_price_point(
     List<BridgePricePoint> self,
     SseSerializer serializer,
@@ -858,6 +1215,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     for (final item in self) {
       sse_encode_bridge_receipt_item(item, serializer);
     }
+  }
+
+  @protected
+  void sse_encode_list_prim_u_8_loose(
+    List<int> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer.putUint8List(
+      self is Uint8List ? self : Uint8List.fromList(self),
+    );
   }
 
   @protected
@@ -901,6 +1270,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     if (self != null) {
       sse_encode_box_autoadd_f_64(self, serializer);
     }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_u_32(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_u_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint32(self);
   }
 
   @protected

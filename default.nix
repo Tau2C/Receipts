@@ -27,6 +27,7 @@ mkShell {
         "x86_64-linux-android"
         "i686-linux-android"
         "x86_64-unknown-linux-gnu"
+        "wasm32-wasip1"
       ];
     })
 
