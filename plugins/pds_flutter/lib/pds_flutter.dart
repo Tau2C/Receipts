@@ -113,6 +113,13 @@ class PdsClient {
   /// Reads durable client cursor position.
   Future<String> getClientCursor(String sessionId) =>
       _platform.getClientCursor(sessionId);
+
+  /// Checks if PDS Core package is installed on the device.
+  Future<bool> isPdsInstalled() => _platform.isPdsInstalled();
+
+  /// Prompts Android system package installer to install PDS Core from APK URI.
+  Future<bool> installPdsApk(String apkUriString) =>
+      _platform.installPdsApk(apkUriString);
 }
 
 /// Alias for PdsClient to maintain compatibility with plugin conventions.

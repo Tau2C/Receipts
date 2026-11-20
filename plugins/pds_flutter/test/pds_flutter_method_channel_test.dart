@@ -22,6 +22,10 @@ void main() {
           return true;
         case 'executeRawRequest':
           return '{"status":"Success"}';
+        case 'isPdsInstalled':
+          return true;
+        case 'installPdsApk':
+          return true;
         default:
           return null;
       }
@@ -44,5 +48,13 @@ void main() {
   test('executeRawRequest', () async {
     final response = await platform.executeRawRequest('{"action":"ping"}');
     expect(response, '{"status":"Success"}');
+  });
+
+  test('isPdsInstalled', () async {
+    expect(await platform.isPdsInstalled(), true);
+  });
+
+  test('installPdsApk', () async {
+    expect(await platform.installPdsApk('content://test.apk'), true);
   });
 }
