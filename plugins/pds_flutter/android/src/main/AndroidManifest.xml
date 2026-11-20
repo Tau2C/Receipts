@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="top.tau2c.pds.flutter.pds_flutter">
+
+    <uses-permission android:name="top.tau2c.pds.permission.ACCESS_PDS" />
+
+    <queries>
+        <package android:name="top.tau2c.pds.core" />
+        <intent>
+            <action android:name="top.tau2c.pds.core.PDS_SERVICE" />
+        </intent>
+    </queries>
+
+</manifest>
