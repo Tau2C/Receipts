@@ -135,7 +135,8 @@ pub fn execute_plugin_fetch_receipts(
             timestamp: r.timestamp,
             total: r.total,
             currency: r.currency,
-            items: r.items
+            items: r
+                .items
                 .into_iter()
                 .map(|item| BridgePluginReceiptItem {
                     name: item.name,
