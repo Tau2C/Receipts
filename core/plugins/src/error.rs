@@ -8,6 +8,9 @@ pub enum PluginError {
     #[error("Linker error: {0}")]
     Linker(#[from] wasmi::errors::LinkerError),
 
+    #[error("WASI error: {0}")]
+    Wasi(#[from] wasmi_wasi::Error),
+
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 
