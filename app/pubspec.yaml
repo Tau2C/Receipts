@@ -37,6 +37,8 @@ dependencies:
       url: https://github.com/Tau2C/pds-flutter.git
       ref: master
   intl: ^0.19.0
+  image_picker: ^1.1.2
+  image: ^4.5.4
   receipts_bridge:
     path: rust_builder
   flutter_rust_bridge: 2.12.0
