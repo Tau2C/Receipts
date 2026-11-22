@@ -158,6 +158,38 @@ pub fn warp_perspective(
     Ok((out_bytes, dst_w, dst_h))
 }
 
+/// Encodes RGBA buffer to JPEG bytes with specified quality (1..=100).
+pub fn encode_jpeg(
+    rgba_bytes: &[u8],
+    width: u32,
+    height: u32,
+    quality: u8,
+) -> Result<Vec<u8>, TransformError> {
+    if width == 0 || height == 0 || rgba_bytes.len() != (width * height * 4) as usize {
+        return Err(TransformError::InvalidDimensions);
+    }
+
+    let img_buffer =
+        image::RgbaImage::from_raw(width, height, rgba_bytes.to_vec()).ok_or_else(|| {
+            TransformError::ImageError("Failed to build RgbaImage buffer".to_string())
+        })?;
+
+    let rgb_img = image::DynamicImage::ImageRgba8(img_buffer).to_rgb8();
+
+    let mut output = std::io::Cursor::new(Vec::new());
+    let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut output, quality);
+    encoder
+        .encode(
+            rgb_img.as_raw(),
+            width,
+            height,
+            image::ExtendedColorType::Rgb8,
+        )
+        .map_err(|e| TransformError::ImageError(e.to_string()))?;
+
+    Ok(output.into_inner())
+}
+
 /// Solves 8x8 linear equation system Ax = B using Gaussian elimination with partial pivoting.
 #[allow(clippy::needless_range_loop)]
 fn solve_8x8(a: &mut [[f64; 8]; 8], b: &mut [f64; 8]) -> Option<[f64; 8]> {
