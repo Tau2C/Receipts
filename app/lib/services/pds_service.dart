@@ -14,6 +14,17 @@ class PdsReceiptService {
     return _client.connect();
   }
 
+  /// Requests client application authorization via interactive PDS dialog.
+  Future<dynamic> requestAuthorization({
+    String clientName = 'Receipts App',
+    List<String> permissions = const ['read', 'write'],
+  }) async {
+    return _client.requestAuthorization(
+      clientName: clientName,
+      permissions: permissions,
+    );
+  }
+
   /// Checks if PDS Core service is installed on the system.
   Future<bool> isPdsInstalled() async {
     return _client.isPdsInstalled();
