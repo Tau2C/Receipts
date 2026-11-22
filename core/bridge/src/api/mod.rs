@@ -56,6 +56,27 @@ pub struct BridgePriceTrendResult {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BridgePoint2D {
+    pub x: f32,
+    pub y: f32,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BridgeQuad {
+    pub top_left: BridgePoint2D,
+    pub top_right: BridgePoint2D,
+    pub bottom_right: BridgePoint2D,
+    pub bottom_left: BridgePoint2D,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BridgeWarpResult {
+    pub rgba_bytes: Vec<u8>,
+    pub width: u32,
+    pub height: u32,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct BridgePluginManifest {
     pub id: String,
     pub name: String,
@@ -247,4 +268,52 @@ pub fn parse_tag_json(json: String) -> Vec<String> {
     Tags::from_json(&json)
         .map(|tags| tags.into_iter().map(|(k, v)| format!("{k}={v}")).collect())
         .unwrap_or_default()
+}
+
+pub fn detect_receipt_corners(
+    grayscale_bytes: Vec<u8>,
+    width: u32,
+    height: u32,
+) -> Option<BridgeQuad> {
+    vision::detect_receipt_corners(&grayscale_bytes, width, height).map(|q| BridgeQuad {
+        top_left: BridgePoint2D {
+            x: q.top_left.x,
+            y: q.top_left.y,
+        },
+        top_right: BridgePoint2D {
+            x: q.top_right.x,
+            y: q.top_right.y,
+        },
+        bottom_right: BridgePoint2D {
+            x: q.bottom_right.x,
+            y: q.bottom_right.y,
+        },
+        bottom_left: BridgePoint2D {
+            x: q.bottom_left.x,
+            y: q.bottom_left.y,
+        },
+    })
+}
+
+pub fn warp_receipt_perspective(
+    rgba_bytes: Vec<u8>,
+    width: u32,
+    height: u32,
+    corners: BridgeQuad,
+) -> Result<BridgeWarpResult, String> {
+    let quad = vision::Quad::new(
+        vision::Point2D::new(corners.top_left.x, corners.top_left.y),
+        vision::Point2D::new(corners.top_right.x, corners.top_right.y),
+        vision::Point2D::new(corners.bottom_right.x, corners.bottom_right.y),
+        vision::Point2D::new(corners.bottom_left.x, corners.bottom_left.y),
+    );
+
+    let (out_rgba, out_w, out_h) = vision::warp_perspective(&rgba_bytes, width, height, &quad)
+        .map_err(|e| format!("Perspective warp failed: {e}"))?;
+
+    Ok(BridgeWarpResult {
+        rgba_bytes: out_rgba,
+        width: out_w,
+        height: out_h,
+    })
 }
