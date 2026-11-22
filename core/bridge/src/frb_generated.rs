@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1976718688;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1126992747;
 
 // Section: executor
 
@@ -111,6 +111,80 @@ fn wire__crate__api__calculate_price_trend_impl(
                         api_variant_ref,
                         api_points,
                     ))?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__execute_plugin_fetch_receipts_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "execute_plugin_fetch_receipts",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_wasm_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
+            let api_access_token = <String>::sse_decode(&mut deserializer);
+            let api_since = <Option<String>>::sse_decode(&mut deserializer);
+            let api_limit = <Option<u32>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::execute_plugin_fetch_receipts(
+                        api_wasm_bytes,
+                        api_access_token,
+                        api_since,
+                        api_limit,
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__get_plugin_manifest_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "get_plugin_manifest",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_wasm_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::get_plugin_manifest(api_wasm_bytes)?;
                     Ok(output_ok)
                 })())
             }
@@ -273,6 +347,62 @@ impl SseDecode for crate::api::BridgeNormalizedItem {
     }
 }
 
+impl SseDecode for crate::api::BridgePluginManifest {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_version = <String>::sse_decode(deserializer);
+        let mut var_retailer = <String>::sse_decode(deserializer);
+        let mut var_description = <String>::sse_decode(deserializer);
+        return crate::api::BridgePluginManifest {
+            id: var_id,
+            name: var_name,
+            version: var_version,
+            retailer: var_retailer,
+            description: var_description,
+        };
+    }
+}
+
+impl SseDecode for crate::api::BridgePluginReceipt {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_externalId = <String>::sse_decode(deserializer);
+        let mut var_store = <String>::sse_decode(deserializer);
+        let mut var_timestamp = <String>::sse_decode(deserializer);
+        let mut var_total = <f64>::sse_decode(deserializer);
+        let mut var_currency = <String>::sse_decode(deserializer);
+        let mut var_items = <Vec<crate::api::BridgePluginReceiptItem>>::sse_decode(deserializer);
+        return crate::api::BridgePluginReceipt {
+            external_id: var_externalId,
+            store: var_store,
+            timestamp: var_timestamp,
+            total: var_total,
+            currency: var_currency,
+            items: var_items,
+        };
+    }
+}
+
+impl SseDecode for crate::api::BridgePluginReceiptItem {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_quantity = <f64>::sse_decode(deserializer);
+        let mut var_unit = <String>::sse_decode(deserializer);
+        let mut var_unitPrice = <f64>::sse_decode(deserializer);
+        let mut var_totalPrice = <f64>::sse_decode(deserializer);
+        return crate::api::BridgePluginReceiptItem {
+            name: var_name,
+            quantity: var_quantity,
+            unit: var_unit,
+            unit_price: var_unitPrice,
+            total_price: var_totalPrice,
+        };
+    }
+}
+
 impl SseDecode for crate::api::BridgePricePoint {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -372,6 +502,32 @@ impl SseDecode for Vec<crate::api::BridgeNormalizedItem> {
     }
 }
 
+impl SseDecode for Vec<crate::api::BridgePluginReceipt> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::BridgePluginReceipt>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::BridgePluginReceiptItem> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::BridgePluginReceiptItem>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::BridgePricePoint> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -443,6 +599,24 @@ impl SseDecode for Option<f64> {
     }
 }
 
+impl SseDecode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u32>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for u32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_u32::<NativeEndian>().unwrap()
+    }
+}
+
 impl SseDecode for u8 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -480,9 +654,13 @@ fn pde_ffi_dispatcher_primary_impl(
     match func_id {
         1 => wire__crate__api__calculate_category_spend_impl(port, ptr, rust_vec_len, data_len),
         2 => wire__crate__api__calculate_price_trend_impl(port, ptr, rust_vec_len, data_len),
-        3 => wire__crate__api__init_app_impl(port, ptr, rust_vec_len, data_len),
-        4 => wire__crate__api__normalize_receipt_items_impl(port, ptr, rust_vec_len, data_len),
-        5 => wire__crate__api__parse_tag_json_impl(port, ptr, rust_vec_len, data_len),
+        3 => {
+            wire__crate__api__execute_plugin_fetch_receipts_impl(port, ptr, rust_vec_len, data_len)
+        }
+        4 => wire__crate__api__get_plugin_manifest_impl(port, ptr, rust_vec_len, data_len),
+        5 => wire__crate__api__init_app_impl(port, ptr, rust_vec_len, data_len),
+        6 => wire__crate__api__normalize_receipt_items_impl(port, ptr, rust_vec_len, data_len),
+        7 => wire__crate__api__parse_tag_json_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -550,6 +728,79 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::BridgeNormalizedItem>
     for crate::api::BridgeNormalizedItem
 {
     fn into_into_dart(self) -> crate::api::BridgeNormalizedItem {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::BridgePluginManifest {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.version.into_into_dart().into_dart(),
+            self.retailer.into_into_dart().into_dart(),
+            self.description.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::BridgePluginManifest
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::BridgePluginManifest>
+    for crate::api::BridgePluginManifest
+{
+    fn into_into_dart(self) -> crate::api::BridgePluginManifest {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::BridgePluginReceipt {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.external_id.into_into_dart().into_dart(),
+            self.store.into_into_dart().into_dart(),
+            self.timestamp.into_into_dart().into_dart(),
+            self.total.into_into_dart().into_dart(),
+            self.currency.into_into_dart().into_dart(),
+            self.items.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::BridgePluginReceipt
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::BridgePluginReceipt>
+    for crate::api::BridgePluginReceipt
+{
+    fn into_into_dart(self) -> crate::api::BridgePluginReceipt {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::BridgePluginReceiptItem {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.name.into_into_dart().into_dart(),
+            self.quantity.into_into_dart().into_dart(),
+            self.unit.into_into_dart().into_dart(),
+            self.unit_price.into_into_dart().into_dart(),
+            self.total_price.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::BridgePluginReceiptItem
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::BridgePluginReceiptItem>
+    for crate::api::BridgePluginReceiptItem
+{
+    fn into_into_dart(self) -> crate::api::BridgePluginReceiptItem {
         self
     }
 }
@@ -654,6 +905,40 @@ impl SseEncode for crate::api::BridgeNormalizedItem {
     }
 }
 
+impl SseEncode for crate::api::BridgePluginManifest {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <String>::sse_encode(self.version, serializer);
+        <String>::sse_encode(self.retailer, serializer);
+        <String>::sse_encode(self.description, serializer);
+    }
+}
+
+impl SseEncode for crate::api::BridgePluginReceipt {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.external_id, serializer);
+        <String>::sse_encode(self.store, serializer);
+        <String>::sse_encode(self.timestamp, serializer);
+        <f64>::sse_encode(self.total, serializer);
+        <String>::sse_encode(self.currency, serializer);
+        <Vec<crate::api::BridgePluginReceiptItem>>::sse_encode(self.items, serializer);
+    }
+}
+
+impl SseEncode for crate::api::BridgePluginReceiptItem {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.name, serializer);
+        <f64>::sse_encode(self.quantity, serializer);
+        <String>::sse_encode(self.unit, serializer);
+        <f64>::sse_encode(self.unit_price, serializer);
+        <f64>::sse_encode(self.total_price, serializer);
+    }
+}
+
 impl SseEncode for crate::api::BridgePricePoint {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -725,6 +1010,26 @@ impl SseEncode for Vec<crate::api::BridgeNormalizedItem> {
     }
 }
 
+impl SseEncode for Vec<crate::api::BridgePluginReceipt> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::BridgePluginReceipt>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::BridgePluginReceiptItem> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::BridgePluginReceiptItem>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::BridgePricePoint> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -782,6 +1087,23 @@ impl SseEncode for Option<f64> {
         if let Some(value) = self {
             <f64>::sse_encode(value, serializer);
         }
+    }
+}
+
+impl SseEncode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u32>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for u32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_u32::<NativeEndian>(self).unwrap();
     }
 }
 

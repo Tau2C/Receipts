@@ -197,9 +197,11 @@ packages:
   pds_flutter:
     dependency: "direct main"
     description:
-      path: "../plugins/pds_flutter"
-      relative: true
-    source: path
+      path: "."
+      ref: master
+      resolved-ref: "66b86f4b396f166381689c01819969cf3c93d4c3"
+      url: "https://github.com/Tau2C/pds-flutter.git"
+    source: git
     version: "0.0.1"
   platform:
     dependency: transitive
