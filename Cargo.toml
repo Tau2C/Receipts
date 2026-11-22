@@ -7,5 +7,6 @@ members = [
     "core/analytics",
     "core/bridge",
     "core/plugins",
+    "core/vision",
     "plugins/lidl_mock",
 ]

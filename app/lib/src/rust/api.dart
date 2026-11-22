@@ -6,7 +6,7 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 Future<BridgePluginManifest> getPluginManifest({
   required List<int> wasmBytes,
@@ -42,6 +42,28 @@ Future<BridgePriceTrendResult?> calculatePriceTrend({
 
 Future<List<String>> parseTagJson({required String json}) =>
     RustLib.instance.api.crateApiParseTagJson(json: json);
+
+Future<BridgeQuad?> detectReceiptCorners({
+  required List<int> grayscaleBytes,
+  required int width,
+  required int height,
+}) => RustLib.instance.api.crateApiDetectReceiptCorners(
+  grayscaleBytes: grayscaleBytes,
+  width: width,
+  height: height,
+);
+
+Future<BridgeWarpResult> warpReceiptPerspective({
+  required List<int> rgbaBytes,
+  required int width,
+  required int height,
+  required BridgeQuad corners,
+}) => RustLib.instance.api.crateApiWarpReceiptPerspective(
+  rgbaBytes: rgbaBytes,
+  width: width,
+  height: height,
+  corners: corners,
+);
 
 class BridgeCategorySpend {
   final String category;
@@ -236,6 +258,24 @@ class BridgePluginReceiptItem {
           totalPrice == other.totalPrice;
 }
 
+class BridgePoint2D {
+  final double x;
+  final double y;
+
+  const BridgePoint2D({required this.x, required this.y});
+
+  @override
+  int get hashCode => x.hashCode ^ y.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BridgePoint2D &&
+          runtimeType == other.runtimeType &&
+          x == other.x &&
+          y == other.y;
+}
+
 class BridgePricePoint {
   final String date;
   final String store;
@@ -295,6 +335,37 @@ class BridgePriceTrendResult {
           latestPrice == other.latestPrice;
 }
 
+class BridgeQuad {
+  final BridgePoint2D topLeft;
+  final BridgePoint2D topRight;
+  final BridgePoint2D bottomRight;
+  final BridgePoint2D bottomLeft;
+
+  const BridgeQuad({
+    required this.topLeft,
+    required this.topRight,
+    required this.bottomRight,
+    required this.bottomLeft,
+  });
+
+  @override
+  int get hashCode =>
+      topLeft.hashCode ^
+      topRight.hashCode ^
+      bottomRight.hashCode ^
+      bottomLeft.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BridgeQuad &&
+          runtimeType == other.runtimeType &&
+          topLeft == other.topLeft &&
+          topRight == other.topRight &&
+          bottomRight == other.bottomRight &&
+          bottomLeft == other.bottomLeft;
+}
+
 class BridgeReceiptItem {
   final String id;
   final String receiptId;
@@ -340,4 +411,28 @@ class BridgeReceiptItem {
           unitPrice == other.unitPrice &&
           totalPrice == other.totalPrice &&
           tagsJson == other.tagsJson;
+}
+
+class BridgeWarpResult {
+  final Uint8List rgbaBytes;
+  final int width;
+  final int height;
+
+  const BridgeWarpResult({
+    required this.rgbaBytes,
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  int get hashCode => rgbaBytes.hashCode ^ width.hashCode ^ height.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BridgeWarpResult &&
+          runtimeType == other.runtimeType &&
+          rgbaBytes == other.rgbaBytes &&
+          width == other.width &&
+          height == other.height;
 }
