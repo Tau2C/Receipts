@@ -66,7 +66,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => -1310132616;
+  int get rustContentHash => 777926535;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -91,6 +91,19 @@ abstract class RustLibApi extends BaseApi {
     required List<int> grayscaleBytes,
     required int width,
     required int height,
+  });
+
+  Future<BridgeCornerDetectionResult?> crateApiDetectReceiptCornersMl({
+    required List<int> rgbaBytes,
+    required int width,
+    required int height,
+  });
+
+  Future<Uint8List> crateApiEncodeReceiptJpeg({
+    required List<int> rgbaBytes,
+    required int width,
+    required int height,
+    required int quality,
   });
 
   Future<List<BridgePluginReceipt>> crateApiExecutePluginFetchReceipts({
@@ -235,6 +248,82 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<BridgeCornerDetectionResult?> crateApiDetectReceiptCornersMl({
+    required List<int> rgbaBytes,
+    required int width,
+    required int height,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_u_8_loose(rgbaBytes, serializer);
+          sse_encode_u_32(width, serializer);
+          sse_encode_u_32(height, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_opt_box_autoadd_bridge_corner_detection_result,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiDetectReceiptCornersMlConstMeta,
+        argValues: [rgbaBytes, width, height],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiDetectReceiptCornersMlConstMeta =>
+      const TaskConstMeta(
+        debugName: "detect_receipt_corners_ml",
+        argNames: ["rgbaBytes", "width", "height"],
+      );
+
+  @override
+  Future<Uint8List> crateApiEncodeReceiptJpeg({
+    required List<int> rgbaBytes,
+    required int width,
+    required int height,
+    required int quality,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_u_8_loose(rgbaBytes, serializer);
+          sse_encode_u_32(width, serializer);
+          sse_encode_u_32(height, serializer);
+          sse_encode_u_8(quality, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiEncodeReceiptJpegConstMeta,
+        argValues: [rgbaBytes, width, height, quality],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiEncodeReceiptJpegConstMeta => const TaskConstMeta(
+    debugName: "encode_receipt_jpeg",
+    argNames: ["rgbaBytes", "width", "height", "quality"],
+  );
+
+  @override
   Future<List<BridgePluginReceipt>> crateApiExecutePluginFetchReceipts({
     required List<int> wasmBytes,
     required String accessToken,
@@ -252,7 +341,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 6,
             port: port_,
           );
         },
@@ -285,7 +374,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 7,
             port: port_,
           );
         },
@@ -314,7 +403,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 8,
             port: port_,
           );
         },
@@ -344,7 +433,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 9,
             port: port_,
           );
         },
@@ -375,7 +464,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 10,
             port: port_,
           );
         },
@@ -411,7 +500,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 11,
             port: port_,
           );
         },
@@ -436,6 +525,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   String dco_decode_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as String;
+  }
+
+  @protected
+  bool dco_decode_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as bool;
+  }
+
+  @protected
+  BridgeCornerDetectionResult
+  dco_decode_box_autoadd_bridge_corner_detection_result(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_bridge_corner_detection_result(raw);
   }
 
   @protected
@@ -473,6 +575,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return BridgeCategorySpend(
       category: dco_decode_String(arr[0]),
       totalAmount: dco_decode_f_64(arr[1]),
+    );
+  }
+
+  @protected
+  BridgeCornerDetectionResult dco_decode_bridge_corner_detection_result(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return BridgeCornerDetectionResult(
+      quad: dco_decode_bridge_quad(arr[0]),
+      confidence: dco_decode_f_32(arr[1]),
+      isMl: dco_decode_bool(arr[2]),
     );
   }
 
@@ -714,6 +831,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BridgeCornerDetectionResult?
+  dco_decode_opt_box_autoadd_bridge_corner_detection_result(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_bridge_corner_detection_result(raw);
+  }
+
+  @protected
   BridgePriceTrendResult? dco_decode_opt_box_autoadd_bridge_price_trend_result(
     dynamic raw,
   ) {
@@ -767,6 +893,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  bool sse_decode_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8() != 0;
+  }
+
+  @protected
+  BridgeCornerDetectionResult
+  sse_decode_box_autoadd_bridge_corner_detection_result(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_bridge_corner_detection_result(deserializer));
+  }
+
+  @protected
   BridgePriceTrendResult sse_decode_box_autoadd_bridge_price_trend_result(
     SseDeserializer deserializer,
   ) {
@@ -802,6 +943,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return BridgeCategorySpend(
       category: var_category,
       totalAmount: var_totalAmount,
+    );
+  }
+
+  @protected
+  BridgeCornerDetectionResult sse_decode_bridge_corner_detection_result(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_quad = sse_decode_bridge_quad(deserializer);
+    var var_confidence = sse_decode_f_32(deserializer);
+    var var_isMl = sse_decode_bool(deserializer);
+    return BridgeCornerDetectionResult(
+      quad: var_quad,
+      confidence: var_confidence,
+      isMl: var_isMl,
     );
   }
 
@@ -1124,6 +1280,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BridgeCornerDetectionResult?
+  sse_decode_opt_box_autoadd_bridge_corner_detection_result(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_bridge_corner_detection_result(
+        deserializer,
+      ));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   BridgePriceTrendResult? sse_decode_opt_box_autoadd_bridge_price_trend_result(
     SseDeserializer deserializer,
   ) {
@@ -1195,15 +1367,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  bool sse_decode_bool(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getUint8() != 0;
-  }
-
-  @protected
   void sse_encode_String(String self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
+  }
+
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self ? 1 : 0);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_bridge_corner_detection_result(
+    BridgeCornerDetectionResult self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bridge_corner_detection_result(self, serializer);
   }
 
   @protected
@@ -1244,6 +1425,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.category, serializer);
     sse_encode_f_64(self.totalAmount, serializer);
+  }
+
+  @protected
+  void sse_encode_bridge_corner_detection_result(
+    BridgeCornerDetectionResult self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bridge_quad(self.quad, serializer);
+    sse_encode_f_32(self.confidence, serializer);
+    sse_encode_bool(self.isMl, serializer);
   }
 
   @protected
@@ -1502,6 +1694,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_bridge_corner_detection_result(
+    BridgeCornerDetectionResult? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_bridge_corner_detection_result(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_bridge_price_trend_result(
     BridgePriceTrendResult? self,
     SseSerializer serializer,
@@ -1568,11 +1773,5 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_i_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putInt32(self);
-  }
-
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putUint8(self ? 1 : 0);
   }
 }
