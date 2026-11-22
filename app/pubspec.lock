@@ -199,7 +199,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: c27e60efd6cb796807bd7fc8e821229f8872a42e
+      resolved-ref: "66b86f4b396f166381689c01819969cf3c93d4c3"
       url: "https://github.com/Tau2C/pds-flutter.git"
     source: git
     version: "0.0.1"

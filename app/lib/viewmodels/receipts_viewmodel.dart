@@ -19,12 +19,14 @@ class ReceiptsViewModel extends ChangeNotifier {
   List<Receipt> _receipts = [];
   bool _isLoading = false;
   bool _isConnected = false;
+  bool _isAuthorized = false;
   bool _isPdsInstalled = true;
   String? _errorMessage;
 
   List<Receipt> get receipts => List.unmodifiable(_receipts);
   bool get isLoading => _isLoading;
   bool get isConnected => _isConnected;
+  bool get isAuthorized => _isAuthorized;
   bool get isPdsInstalled => _isPdsInstalled;
   String? get errorMessage => _errorMessage;
 
@@ -51,6 +53,36 @@ class ReceiptsViewModel extends ChangeNotifier {
       }
     } catch (e) {
       _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> authorize() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final authResult = await _service.requestAuthorization(
+        clientName: 'Receipts App',
+        permissions: ['read', 'write'],
+      );
+
+      final authorized = authResult != null &&
+          (authResult.isAuthorized == true ||
+              (authResult is Map && authResult['isAuthorized'] == true));
+
+      _isAuthorized = authorized;
+      if (_isAuthorized) {
+        _errorMessage = null;
+        await loadReceipts();
+      } else {
+        _errorMessage = 'Brak autoryzacji w PDS Core.';
+      }
+      return _isAuthorized;
+    } catch (e) {
+      _errorMessage = 'Błąd autoryzacji: $e';
+      return false;
     } finally {
       _isLoading = false;
       notifyListeners();

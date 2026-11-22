@@ -110,6 +110,12 @@ class ReceiptsListView extends StatelessWidget {
                           icon: const Icon(Icons.download),
                           label: const Text('ZAINSTALUJ PDS'),
                         ),
+                      if (viewModel.isConnected && !viewModel.isAuthorized)
+                        FilledButton.icon(
+                          onPressed: viewModel.authorize,
+                          icon: const Icon(Icons.security),
+                          label: const Text('AUTORYZUJ'),
+                        ),
                       TextButton(
                         onPressed: viewModel.initialize,
                         child: const Text('PONÓW'),
