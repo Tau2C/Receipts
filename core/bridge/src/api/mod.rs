@@ -270,6 +270,13 @@ pub fn parse_tag_json(json: String) -> Vec<String> {
         .unwrap_or_default()
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BridgeCornerDetectionResult {
+    pub quad: BridgeQuad,
+    pub confidence: f32,
+    pub is_ml: bool,
+}
+
 pub fn detect_receipt_corners(
     grayscale_bytes: Vec<u8>,
     width: u32,
@@ -295,6 +302,37 @@ pub fn detect_receipt_corners(
     })
 }
 
+pub fn detect_receipt_corners_ml(
+    rgba_bytes: Vec<u8>,
+    width: u32,
+    height: u32,
+) -> Option<BridgeCornerDetectionResult> {
+    vision::detect_corners_hybrid(&rgba_bytes, width, height).map(|res| {
+        BridgeCornerDetectionResult {
+            quad: BridgeQuad {
+                top_left: BridgePoint2D {
+                    x: res.quad.top_left.x,
+                    y: res.quad.top_left.y,
+                },
+                top_right: BridgePoint2D {
+                    x: res.quad.top_right.x,
+                    y: res.quad.top_right.y,
+                },
+                bottom_right: BridgePoint2D {
+                    x: res.quad.bottom_right.x,
+                    y: res.quad.bottom_right.y,
+                },
+                bottom_left: BridgePoint2D {
+                    x: res.quad.bottom_left.x,
+                    y: res.quad.bottom_left.y,
+                },
+            },
+            confidence: res.confidence,
+            is_ml: res.is_ml,
+        }
+    })
+}
+
 pub fn warp_receipt_perspective(
     rgba_bytes: Vec<u8>,
     width: u32,
@@ -316,4 +354,14 @@ pub fn warp_receipt_perspective(
         width: out_w,
         height: out_h,
     })
+}
+
+pub fn encode_receipt_jpeg(
+    rgba_bytes: Vec<u8>,
+    width: u32,
+    height: u32,
+    quality: u8,
+) -> Result<Vec<u8>, String> {
+    vision::encode_jpeg(&rgba_bytes, width, height, quality)
+        .map_err(|e| format!("JPEG encoding failed: {e}"))
 }

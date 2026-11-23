@@ -6,7 +6,7 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 Future<BridgePluginManifest> getPluginManifest({
   required List<int> wasmBytes,
@@ -53,6 +53,16 @@ Future<BridgeQuad?> detectReceiptCorners({
   height: height,
 );
 
+Future<BridgeCornerDetectionResult?> detectReceiptCornersMl({
+  required List<int> rgbaBytes,
+  required int width,
+  required int height,
+}) => RustLib.instance.api.crateApiDetectReceiptCornersMl(
+  rgbaBytes: rgbaBytes,
+  width: width,
+  height: height,
+);
+
 Future<BridgeWarpResult> warpReceiptPerspective({
   required List<int> rgbaBytes,
   required int width,
@@ -63,6 +73,18 @@ Future<BridgeWarpResult> warpReceiptPerspective({
   width: width,
   height: height,
   corners: corners,
+);
+
+Future<Uint8List> encodeReceiptJpeg({
+  required List<int> rgbaBytes,
+  required int width,
+  required int height,
+  required int quality,
+}) => RustLib.instance.api.crateApiEncodeReceiptJpeg(
+  rgbaBytes: rgbaBytes,
+  width: width,
+  height: height,
+  quality: quality,
 );
 
 class BridgeCategorySpend {
@@ -84,6 +106,30 @@ class BridgeCategorySpend {
           runtimeType == other.runtimeType &&
           category == other.category &&
           totalAmount == other.totalAmount;
+}
+
+class BridgeCornerDetectionResult {
+  final BridgeQuad quad;
+  final double confidence;
+  final bool isMl;
+
+  const BridgeCornerDetectionResult({
+    required this.quad,
+    required this.confidence,
+    required this.isMl,
+  });
+
+  @override
+  int get hashCode => quad.hashCode ^ confidence.hashCode ^ isMl.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BridgeCornerDetectionResult &&
+          runtimeType == other.runtimeType &&
+          quad == other.quad &&
+          confidence == other.confidence &&
+          isMl == other.isMl;
 }
 
 class BridgeNormalizedItem {

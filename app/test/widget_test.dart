@@ -67,6 +67,7 @@ void main() {
     expect(find.text('PDS Receipts'), findsOneWidget);
     expect(find.text('Biedronka'), findsOneWidget);
     expect(find.text('35.50 PLN'), findsWidgets);
-    expect(find.text('Add Receipt'), findsOneWidget);
+    expect(find.text('Scan Receipt'), findsOneWidget);
+    expect(find.text('Add Manual'), findsOneWidget);
   });
 }

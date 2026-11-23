@@ -1,11 +1,19 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../models/receipt.dart';
 import '../viewmodels/receipts_viewmodel.dart';
 
 class AddReceiptView extends StatefulWidget {
   final ReceiptsViewModel viewModel;
+  final String? initialImageBlobHash;
+  final Uint8List? imagePreviewBytes;
 
-  const AddReceiptView({super.key, required this.viewModel});
+  const AddReceiptView({
+    super.key,
+    required this.viewModel,
+    this.initialImageBlobHash,
+    this.imagePreviewBytes,
+  });
 
   @override
   State<AddReceiptView> createState() => _AddReceiptViewState();
@@ -64,6 +72,7 @@ class _AddReceiptViewState extends State<AddReceiptView> {
       timestamp: DateTime.now(),
       total: (_totalAmount * 100).round() / 100,
       currency: _currencyController.text.trim(),
+      imageBlobHash: widget.initialImageBlobHash,
     );
 
     await widget.viewModel.addReceipt(receipt, receiptItems);
@@ -84,6 +93,28 @@ class _AddReceiptViewState extends State<AddReceiptView> {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
+            if (widget.imagePreviewBytes != null)
+              Card(
+                clipBehavior: Clip.antiAlias,
+                margin: const EdgeInsets.only(bottom: 16.0),
+                child: Column(
+                  children: [
+                    Image.memory(
+                      widget.imagePreviewBytes!,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.contain,
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text(
+                        'Rectified Receipt Image Attached',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             TextFormField(
               controller: _storeController,
               decoration: const InputDecoration(
