@@ -49,21 +49,26 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
+}
 
-    applicationVariants.all {
-        val abiCodes = mapOf(
-            "armeabi-v7a" to 1,
-            "arm64-v8a" to 2,
-            "x86" to 3,
-            "x86_64" to 4
-        )
-        val baseCode = versionCode
-        outputs.all {
-            val outputImpl = this as? com.android.build.gradle.internal.api.BaseVariantOutputImpl
-            val abi = outputImpl?.getFilter(com.android.build.OutputFile.ABI)
-            if (abi != null) {
-                val offset = abiCodes[abi] ?: 0
-                outputImpl.versionCodeOverride = baseCode * 10 + offset
+androidComponents {
+    onVariants { variant ->
+        val baseCode = (rootProject.extra["receiptsVersionCode"] as? Int) ?: 1
+        variant.outputs.forEach { output ->
+            val abi = output.filters.find {
+                it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI
+            }?.identifier
+
+            val abiOffset = when (abi) {
+                "armeabi-v7a" -> 1
+                "arm64-v8a" -> 2
+                "x86" -> 3
+                "x86_64" -> 4
+                else -> 0
+            }
+
+            if (abiOffset > 0) {
+                output.versionCode.set(baseCode * 10 + abiOffset)
             }
         }
     }
