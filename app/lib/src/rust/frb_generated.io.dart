@@ -22,9 +22,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  bool dco_decode_bool(dynamic raw);
+
+  @protected
+  BridgeCornerDetectionResult
+  dco_decode_box_autoadd_bridge_corner_detection_result(dynamic raw);
+
+  @protected
   BridgePriceTrendResult dco_decode_box_autoadd_bridge_price_trend_result(
     dynamic raw,
   );
+
+  @protected
+  BridgeQuad dco_decode_box_autoadd_bridge_quad(dynamic raw);
 
   @protected
   double dco_decode_box_autoadd_f_64(dynamic raw);
@@ -34,6 +44,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   BridgeCategorySpend dco_decode_bridge_category_spend(dynamic raw);
+
+  @protected
+  BridgeCornerDetectionResult dco_decode_bridge_corner_detection_result(
+    dynamic raw,
+  );
 
   @protected
   BridgeNormalizedItem dco_decode_bridge_normalized_item(dynamic raw);
@@ -48,13 +63,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BridgePluginReceiptItem dco_decode_bridge_plugin_receipt_item(dynamic raw);
 
   @protected
+  BridgePoint2D dco_decode_bridge_point_2_d(dynamic raw);
+
+  @protected
   BridgePricePoint dco_decode_bridge_price_point(dynamic raw);
 
   @protected
   BridgePriceTrendResult dco_decode_bridge_price_trend_result(dynamic raw);
 
   @protected
+  BridgeQuad dco_decode_bridge_quad(dynamic raw);
+
+  @protected
   BridgeReceiptItem dco_decode_bridge_receipt_item(dynamic raw);
+
+  @protected
+  BridgeWarpResult dco_decode_bridge_warp_result(dynamic raw);
+
+  @protected
+  double dco_decode_f_32(dynamic raw);
 
   @protected
   double dco_decode_f_64(dynamic raw);
@@ -94,9 +121,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
+  BridgeCornerDetectionResult?
+  dco_decode_opt_box_autoadd_bridge_corner_detection_result(dynamic raw);
+
+  @protected
   BridgePriceTrendResult? dco_decode_opt_box_autoadd_bridge_price_trend_result(
     dynamic raw,
   );
+
+  @protected
+  BridgeQuad? dco_decode_opt_box_autoadd_bridge_quad(dynamic raw);
 
   @protected
   double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
@@ -117,9 +151,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  BridgeCornerDetectionResult
+  sse_decode_box_autoadd_bridge_corner_detection_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   BridgePriceTrendResult sse_decode_box_autoadd_bridge_price_trend_result(
     SseDeserializer deserializer,
   );
+
+  @protected
+  BridgeQuad sse_decode_box_autoadd_bridge_quad(SseDeserializer deserializer);
 
   @protected
   double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
@@ -129,6 +175,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   BridgeCategorySpend sse_decode_bridge_category_spend(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BridgeCornerDetectionResult sse_decode_bridge_corner_detection_result(
     SseDeserializer deserializer,
   );
 
@@ -153,6 +204,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  BridgePoint2D sse_decode_bridge_point_2_d(SseDeserializer deserializer);
+
+  @protected
   BridgePricePoint sse_decode_bridge_price_point(SseDeserializer deserializer);
 
   @protected
@@ -161,9 +215,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  BridgeQuad sse_decode_bridge_quad(SseDeserializer deserializer);
+
+  @protected
   BridgeReceiptItem sse_decode_bridge_receipt_item(
     SseDeserializer deserializer,
   );
+
+  @protected
+  BridgeWarpResult sse_decode_bridge_warp_result(SseDeserializer deserializer);
+
+  @protected
+  double sse_decode_f_32(SseDeserializer deserializer);
 
   @protected
   double sse_decode_f_64(SseDeserializer deserializer);
@@ -211,7 +274,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
+  BridgeCornerDetectionResult?
+  sse_decode_opt_box_autoadd_bridge_corner_detection_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   BridgePriceTrendResult? sse_decode_opt_box_autoadd_bridge_price_trend_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BridgeQuad? sse_decode_opt_box_autoadd_bridge_quad(
     SseDeserializer deserializer,
   );
 
@@ -234,14 +308,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
-  bool sse_decode_bool(SseDeserializer deserializer);
+  void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
-  void sse_encode_String(String self, SseSerializer serializer);
+  void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_bridge_corner_detection_result(
+    BridgeCornerDetectionResult self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_bridge_price_trend_result(
     BridgePriceTrendResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_bridge_quad(
+    BridgeQuad self,
     SseSerializer serializer,
   );
 
@@ -254,6 +340,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_bridge_category_spend(
     BridgeCategorySpend self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_bridge_corner_detection_result(
+    BridgeCornerDetectionResult self,
     SseSerializer serializer,
   );
 
@@ -282,6 +374,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_bridge_point_2_d(
+    BridgePoint2D self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_bridge_price_point(
     BridgePricePoint self,
     SseSerializer serializer,
@@ -294,10 +392,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_bridge_quad(BridgeQuad self, SseSerializer serializer);
+
+  @protected
   void sse_encode_bridge_receipt_item(
     BridgeReceiptItem self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_bridge_warp_result(
+    BridgeWarpResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_f_32(double self, SseSerializer serializer);
 
   @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
@@ -354,8 +464,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_bridge_corner_detection_result(
+    BridgeCornerDetectionResult? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_bridge_price_trend_result(
     BridgePriceTrendResult? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_bridge_quad(
+    BridgeQuad? self,
     SseSerializer serializer,
   );
 
@@ -376,9 +498,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer);
 }
 
 // Section: wire_class

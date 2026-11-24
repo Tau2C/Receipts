@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../viewmodels/receipts_viewmodel.dart';
 import 'add_receipt_view.dart';
 import 'receipt_detail_view.dart';
+import 'receipt_scan_view.dart';
 
 class ReceiptsListView extends StatelessWidget {
   final ReceiptsViewModel viewModel;
@@ -186,16 +187,35 @@ class ReceiptsListView extends StatelessWidget {
               ),
             ],
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => AddReceiptView(viewModel: viewModel),
-                ),
-              );
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('Add Receipt'),
+          floatingActionButton: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FloatingActionButton.extended(
+                heroTag: 'scanReceiptBtn',
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ReceiptScanView(viewModel: viewModel),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.document_scanner),
+                label: const Text('Scan Receipt'),
+              ),
+              const SizedBox(height: 12),
+              FloatingActionButton.extended(
+                heroTag: 'addReceiptBtn',
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => AddReceiptView(viewModel: viewModel),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Add Manual'),
+              ),
+            ],
           ),
         );
       },

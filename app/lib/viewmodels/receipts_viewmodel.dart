@@ -120,6 +120,14 @@ class ReceiptsViewModel extends ChangeNotifier {
     }
   }
 
+  Future<String> uploadReceiptImage(Uint8List imageBytes) {
+    return _service.uploadReceiptImage(imageBytes);
+  }
+
+  Future<Uint8List?> fetchReceiptImage(String blobHash) {
+    return _service.fetchReceiptImage(blobHash);
+  }
+
   Future<List<ReceiptItem>> loadReceiptItems(String receiptId) {
     return _service.fetchReceiptItems(receiptId);
   }
