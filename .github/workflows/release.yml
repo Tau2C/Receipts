@@ -19,17 +19,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Determine Release Channel
-        id: channel
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          if [[ "$TAG" == *"-beta"* ]] || [[ "$TAG" == *"-rc"* ]] || [[ "$TAG" == *"-alpha"* ]] || [[ "$TAG" == *"-dev"* ]]; then
-            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
-            echo "fdroid_target_dir=archive" >> "$GITHUB_OUTPUT"
-          else
-            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
-            echo "fdroid_target_dir=repo" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Setup Java JDK 17
         uses: actions/setup-java@v4
@@ -78,7 +67,7 @@ jobs:
         with:
           files: release-artifacts/*
           draft: false
-          prerelease: ${{ steps.channel.outputs.is_prerelease == 'true' }}
+          prerelease: ${{ contains(github.ref_name, '-dev') || contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
           generate_release_notes: true
 
       - name: Trigger F-Droid Repo Update
