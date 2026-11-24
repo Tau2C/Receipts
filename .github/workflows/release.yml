@@ -98,7 +98,7 @@ jobs:
           if [ -f "$APK_FILE" ]; then
             cp "$APK_FILE" "${TARGET_DIR}/top.tau2c.receipts.app_${TAG_NAME}.apk"
             cd fdroid-repo
-            git add repo/ archive/ || true
+            git add -A "${{ steps.channel.outputs.fdroid_target_dir }}"
             git commit -m "feat(receipts): add Receipts ${TAG_NAME} to ${{ steps.channel.outputs.fdroid_target_dir }}" || exit 0
             git push origin master
           fi
