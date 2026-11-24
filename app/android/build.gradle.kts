@@ -28,20 +28,7 @@ extra["receiptsVersionCode"] = try {
     val major = parts.getOrNull(0)?.toIntOrNull() ?: 0
     val minor = parts.getOrNull(1)?.toIntOrNull() ?: 1
     val patch = parts.getOrNull(2)?.toIntOrNull() ?: 0
-    val base = major * 100000 + minor * 1000 + patch * 10
-
-    if (receiptsVersion.contains("-rc")) {
-        val num = Regex("-rc\\.?(\\d+)").find(receiptsVersion)?.groupValues?.get(1)?.toIntOrNull() ?: 1
-        base + num
-    } else if (receiptsVersion.contains("-beta")) {
-        val num = Regex("-beta\\.?(\\d+)").find(receiptsVersion)?.groupValues?.get(1)?.toIntOrNull() ?: 1
-        base - 5 + num
-    } else if (receiptsVersion.contains("-dev")) {
-        val num = Regex("-dev\\.?(\\d+)").find(receiptsVersion)?.groupValues?.get(1)?.toIntOrNull() ?: 1
-        base - 9 + num
-    } else {
-        base + 9
-    }
+    major * 10000 + minor * 100 + patch
 } catch (_: Exception) {
     1
 }
