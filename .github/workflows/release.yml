@@ -65,18 +65,13 @@ jobs:
         run: |
           cd app
           flutter pub get
-          flutter build apk --release --split-per-abi --android-skip-build-dependency-validation
+          flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Collect Release Artifacts
         run: |
           mkdir -p release-artifacts
           TAG_NAME="${GITHUB_REF_NAME}"
-          for apk in app/build/app/outputs/flutter-apk/app-*-release.apk; do
-            if [ -f "$apk" ]; then
-              abi=$(basename "$apk" | sed -E 's/app-(.*)-release\.apk/\1/')
-              cp "$apk" "release-artifacts/receipts-${TAG_NAME}-${abi}.apk"
-            fi
-          done
+          cp app/build/app/outputs/flutter-apk/app-release.apk "release-artifacts/receipts-${TAG_NAME}.apk"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -86,36 +81,14 @@ jobs:
           prerelease: ${{ steps.channel.outputs.is_prerelease == 'true' }}
           generate_release_notes: true
 
-      - name: Publish APK to F-Droid Repository
+      - name: Trigger F-Droid Repo Update
         if: ${{ env.FDROID_REPO_TOKEN != '' }}
         env:
           FDROID_REPO_TOKEN: ${{ secrets.FDROID_REPO_TOKEN }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          git clone "https://x-access-token:${FDROID_REPO_TOKEN}@github.com/Tau2C/fdroid-repo.git" fdroid-repo
-          TARGET_DIR="fdroid-repo/${{ steps.channel.outputs.fdroid_target_dir }}"
-          mkdir -p "$TARGET_DIR"
-
-          TAG_NAME="${GITHUB_REF_NAME}"
-          for apk in release-artifacts/receipts-${TAG_NAME}-*.apk; do
-            if [ -f "$apk" ]; then
-              abi=$(basename "$apk" | sed -E "s/receipts-${TAG_NAME}-(.*)\.apk/\1/")
-              cp "$apk" "${TARGET_DIR}/top.tau2c.receipts.app_${TAG_NAME}_${abi}.apk"
-            fi
-          done
-
-          cd fdroid-repo
-          git add -A "${{ steps.channel.outputs.fdroid_target_dir }}"
-          git commit -m "feat(receipts): add Receipts ${TAG_NAME} split APKs to ${{ steps.channel.outputs.fdroid_target_dir }}" || exit 0
-          git push origin master
-
-      - name: Trigger F-Droid Repo Update
-        if: ${{ env.FDROID_REPO_TOKEN != '' }}
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.FDROID_REPO_TOKEN }}
           repository: Tau2C/fdroid-repo
           event-type: new-release
+
 

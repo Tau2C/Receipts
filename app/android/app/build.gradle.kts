@@ -51,29 +51,7 @@ android {
     }
 }
 
-androidComponents {
-    onVariants { variant ->
-        val baseCode = (rootProject.extra["receiptsVersionCode"] as? Int) ?: 1
-        variant.outputs.forEach { output ->
-            val abi = output.filters.find {
-                it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI
-            }?.identifier
-
-            val abiOffset = when (abi) {
-                "armeabi-v7a" -> 1
-                "arm64-v8a" -> 2
-                "x86" -> 3
-                "x86_64" -> 4
-                else -> 0
-            }
-
-            if (abiOffset > 0) {
-                output.versionCode.set(baseCode * 10 + abiOffset)
-            }
-        }
-    }
-}
-
 flutter {
     source = "../.."
 }
+
