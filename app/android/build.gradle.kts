@@ -28,7 +28,16 @@ extra["receiptsVersionCode"] = try {
     val major = parts.getOrNull(0)?.toIntOrNull() ?: 0
     val minor = parts.getOrNull(1)?.toIntOrNull() ?: 1
     val patch = parts.getOrNull(2)?.toIntOrNull() ?: 0
-    major * 10000 + minor * 100 + patch
+    val base = major * 1000000 + minor * 10000 + patch * 100
+
+    val pre = if (receiptsVersion.contains("-")) {
+        val numStr = Regex("(\\d+)$").find(receiptsVersion)?.groupValues?.get(1)
+        val num = numStr?.toIntOrNull() ?: 0
+        num.coerceIn(0, 98)
+    } else {
+        99
+    }
+    base + pre
 } catch (_: Exception) {
     1
 }
