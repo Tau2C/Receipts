@@ -1,47 +1,52 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app/models/receipt.dart';
+import 'package:app/services/pds_service.dart';
 import 'package:app/viewmodels/receipts_viewmodel.dart';
 import 'package:app/views/receipts_list_view.dart';
 
+class FakePdsReceiptService extends PdsReceiptService {
+  final List<Receipt> storedReceipts = [];
+
+  @override
+  Future<bool> initialize() async => true;
+
+  @override
+  Future<bool> isPdsInstalled() async => true;
+
+  @override
+  Future<dynamic> requestAuthorization({
+    String clientName = 'Receipts App',
+    List<String> permissions = const ['read', 'write'],
+  }) async =>
+      true;
+
+  @override
+  Future<List<Receipt>> fetchReceipts() async => List.of(storedReceipts);
+
+  @override
+  Future<String> saveReceipt(Receipt receipt, List<ReceiptItem> items) async {
+    storedReceipts.add(receipt);
+    return 'ok';
+  }
+
+  @override
+  Stream<String> watchReceiptChanges() => const Stream.empty();
+
+  @override
+  Future<String> uploadReceiptImage(Uint8List imageBytes) async => 'hash';
+
+  @override
+  Future<Uint8List?> fetchReceiptImage(String blobHash) async => null;
+}
+
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-  const channel = MethodChannel('top.tau2c.pds/client');
-
-  setUp(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (MethodCall call) async {
-          switch (call.method) {
-            case 'connect':
-              return true;
-            case 'disconnect':
-              return true;
-            case 'isConnected':
-              return true;
-            case 'isReady':
-              return true;
-            case 'executeRawRequest':
-              return '{"status":"Success"}';
-            case 'isPdsInstalled':
-              return true;
-            case 'installPdsApk':
-              return true;
-            default:
-              return null;
-          }
-        });
-  });
-
-  tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, null);
-  });
-
   testWidgets('Receipts dashboard displays total spend and receipt items', (
     WidgetTester tester,
   ) async {
-    final viewModel = ReceiptsViewModel();
+    final fakeService = FakePdsReceiptService();
+    final viewModel = ReceiptsViewModel(service: fakeService);
     final receipt = Receipt(
       id: 'rcpt_001',
       store: 'Biedronka',
@@ -71,3 +76,4 @@ void main() {
     expect(find.text('Add Manual'), findsOneWidget);
   });
 }
+

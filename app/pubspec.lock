@@ -364,10 +364,10 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "66b86f4b396f166381689c01819969cf3c93d4c3"
+      resolved-ref: "4d5a9dd12bc7c204c5dada79206de9243e010c38"
       url: "https://github.com/Tau2C/pds-flutter.git"
     source: git
-    version: "0.0.1"
+    version: "1.11.0"
   platform:
     dependency: transitive
     description:
