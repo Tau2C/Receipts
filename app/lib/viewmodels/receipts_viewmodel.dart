@@ -44,10 +44,16 @@ class ReceiptsViewModel extends ChangeNotifier {
         return;
       }
 
+      _isAuthorized = await _service.isAuthorized();
       _isConnected = await _service.initialize();
       if (_isConnected) {
-        await loadReceipts();
-        _subscribeToChanges();
+        if (_isAuthorized) {
+          _errorMessage = null;
+          await loadReceipts();
+          _subscribeToChanges();
+        } else {
+          _errorMessage = 'Aplikacja wymaga autoryzacji w usłudze PDS Core.';
+        }
       } else {
         _errorMessage = 'Nie udało się połączyć z usługą PDS Core.';
       }
@@ -64,18 +70,25 @@ class ReceiptsViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       final authResult = await _service.requestAuthorization(
-        clientName: 'Receipts App',
-        permissions: ['read', 'write'],
+        clientName: 'Receipts',
+        permissions: const [
+          'ReadEntities',
+          'WriteEntities',
+          'ReadBlobs',
+          'WriteBlobs',
+        ],
       );
 
-      final authorized = authResult != null &&
-          (authResult.isAuthorized == true ||
-              (authResult is Map && authResult['isAuthorized'] == true));
-
-      _isAuthorized = authorized;
+      _isAuthorized = authResult.isAuthorized;
       if (_isAuthorized) {
         _errorMessage = null;
-        await loadReceipts();
+        if (!_isConnected) {
+          _isConnected = await _service.initialize();
+        }
+        if (_isConnected) {
+          await loadReceipts();
+          _subscribeToChanges();
+        }
       } else {
         _errorMessage = 'Brak autoryzacji w PDS Core.';
       }
