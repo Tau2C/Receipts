@@ -363,11 +363,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: master
-      resolved-ref: "4d5a9dd12bc7c204c5dada79206de9243e010c38"
+      ref: "v0.9.0-dev.1"
+      resolved-ref: "779ba1ebe2576d343ee2cb25c8069feca9cc181b"
       url: "https://github.com/Tau2C/pds-flutter.git"
     source: git
-    version: "1.11.0"
+    version: "0.9.0-dev.1"
   platform:
     dependency: transitive
     description:
