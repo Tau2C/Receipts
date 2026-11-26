@@ -51,18 +51,26 @@ class PdsReceiptService {
     return _client.disconnect();
   }
 
-  /// Fetches all receipts stored in PDS.
+  /// Fetches all receipts stored in PDS via pending changes synchronization.
   Future<List<Receipt>> fetchReceipts() async {
     try {
-      final res = await _client.query('receipts');
+      final sessionId = await _client.getSessionId();
+      if (sessionId == null) return [];
+
+      final res = await _client.getPendingChanges(sessionId);
       if (res.isEmpty) return [];
 
       final list = jsonDecode(res);
       if (list is List) {
-        return list
-            .whereType<Map<String, dynamic>>()
-            .map(Receipt.fromJson)
-            .toList();
+        final receipts = <Receipt>[];
+        for (final item in list) {
+          if (item is Map<String, dynamic> &&
+              item['entity_type'] == 'receipts' &&
+              item['data'] is Map<String, dynamic>) {
+            receipts.add(Receipt.fromJson(item['data'] as Map<String, dynamic>));
+          }
+        }
+        return receipts;
       }
     } catch (_) {}
     return [];
@@ -79,20 +87,29 @@ class PdsReceiptService {
     return _client.put('receipts', receipt.toJson());
   }
 
-  /// Fetches items for a specific receipt.
+  /// Fetches items for a specific receipt via pending changes synchronization.
   Future<List<ReceiptItem>> fetchReceiptItems(String receiptId) async {
     try {
-      final res = await _client.query('receipt_items', {
-        'receipt_id': receiptId,
-      });
+      final sessionId = await _client.getSessionId();
+      if (sessionId == null) return [];
+
+      final res = await _client.getPendingChanges(sessionId);
       if (res.isEmpty) return [];
 
       final list = jsonDecode(res);
       if (list is List) {
-        return list
-            .whereType<Map<String, dynamic>>()
-            .map(ReceiptItem.fromJson)
-            .toList();
+        final items = <ReceiptItem>[];
+        for (final item in list) {
+          if (item is Map<String, dynamic> &&
+              item['entity_type'] == 'receipt_items' &&
+              item['data'] is Map<String, dynamic>) {
+            final data = item['data'] as Map<String, dynamic>;
+            if (data['receipt_id'] == receiptId) {
+              items.add(ReceiptItem.fromJson(data));
+            }
+          }
+        }
+        return items;
       }
     } catch (_) {}
     return [];
