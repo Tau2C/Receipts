@@ -71,7 +71,7 @@ jobs:
           generate_release_notes: true
 
       - name: Trigger F-Droid Repo Update
-        if: ${{ env.FDROID_REPO_TOKEN != '' }}
+        if: ${{ env.FDROID_REPO_TOKEN != '' && !contains(github.ref_name, '-dev') && !contains(github.ref_name, '-alpha') && !contains(github.ref_name, '-beta') && !contains(github.ref_name, '-rc') }}
         env:
           FDROID_REPO_TOKEN: ${{ secrets.FDROID_REPO_TOKEN }}
         uses: peter-evans/repository-dispatch@v3
