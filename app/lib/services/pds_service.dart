@@ -14,10 +14,21 @@ class PdsReceiptService {
     return _client.connect();
   }
 
+  /// Checks if client identity is authorized with PDS Core.
+  Future<bool> isAuthorized() => _client.isAuthorized();
+
+  /// Gets the registered client identifier if authorized.
+  Future<String?> getClientId() => _client.getClientId();
+
   /// Requests client application authorization via interactive PDS dialog.
-  Future<dynamic> requestAuthorization({
-    String clientName = 'Receipts App',
-    List<String> permissions = const ['read', 'write'],
+  Future<PdsAuthResult> requestAuthorization({
+    String clientName = 'Receipts',
+    List<String> permissions = const [
+      'ReadEntities',
+      'WriteEntities',
+      'ReadBlobs',
+      'WriteBlobs',
+    ],
   }) async {
     return _client.requestAuthorization(
       clientName: clientName,

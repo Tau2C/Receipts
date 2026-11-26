@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pds_flutter/pds_flutter.dart';
 import 'package:app/models/receipt.dart';
 import 'package:app/services/pds_service.dart';
 import 'package:app/viewmodels/receipts_viewmodel.dart';
@@ -16,11 +17,23 @@ class FakePdsReceiptService extends PdsReceiptService {
   Future<bool> isPdsInstalled() async => true;
 
   @override
-  Future<dynamic> requestAuthorization({
-    String clientName = 'Receipts App',
-    List<String> permissions = const ['read', 'write'],
+  Future<bool> isAuthorized() async => true;
+
+  @override
+  Future<PdsAuthResult> requestAuthorization({
+    String clientName = 'Receipts',
+    List<String> permissions = const [
+      'ReadEntities',
+      'WriteEntities',
+      'ReadBlobs',
+      'WriteBlobs',
+    ],
   }) async =>
-      true;
+      const PdsAuthResult(
+        isAuthorized: true,
+        clientId: 'mock_client_id',
+        grantedPermissions: ['ReadEntities', 'WriteEntities'],
+      );
 
   @override
   Future<List<Receipt>> fetchReceipts() async => List.of(storedReceipts);
