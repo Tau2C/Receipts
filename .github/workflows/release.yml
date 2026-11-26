@@ -82,7 +82,7 @@ jobs:
           generate_release_notes: true
 
       - name: Publish APK to F-Droid Repository
-        if: ${{ env.FDROID_REPO_TOKEN != '' && !contains(github.ref_name, '-dev') && !contains(github.ref_name, '-alpha') && !contains(github.ref_name, '-beta') && !contains(github.ref_name, '-rc') }}
+        if: ${{ env.FDROID_REPO_TOKEN != '' && !steps.channel.outputs.is_prerelease == 'true' }}
         env:
           FDROID_REPO_TOKEN: ${{ secrets.FDROID_REPO_TOKEN }}
         run: |
